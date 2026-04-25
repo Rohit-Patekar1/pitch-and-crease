@@ -36,8 +36,9 @@ export function verifySessionToken(token: string | undefined): boolean {
   return ageSeconds >= 0 && ageSeconds <= SEVEN_DAYS;
 }
 
-export function setSessionCookie(token: string) {
-  cookies().set(COOKIE_NAME, token, {
+export async function setSessionCookie(token: string): Promise<void> {
+  const store = await cookies();
+  store.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -46,12 +47,14 @@ export function setSessionCookie(token: string) {
   });
 }
 
-export function clearSessionCookie() {
-  cookies().delete(COOKIE_NAME);
+export async function clearSessionCookie(): Promise<void> {
+  const store = await cookies();
+  store.delete(COOKIE_NAME);
 }
 
-export function isAuthenticated(): boolean {
-  const token = cookies().get(COOKIE_NAME)?.value;
+export async function isAuthenticated(): Promise<boolean> {
+  const store = await cookies();
+  const token = store.get(COOKIE_NAME)?.value;
   return verifySessionToken(token);
 }
 

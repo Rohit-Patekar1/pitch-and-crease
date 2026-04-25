@@ -33,7 +33,7 @@ async function quickStatus(formData: FormData) {
 
 async function logout() {
   "use server";
-  clearSessionCookie();
+  await clearSessionCookie();
   redirect("/admin/login");
 }
 
@@ -51,7 +51,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default async function AdminDashboard() {
-  if (!isAuthenticated()) redirect("/admin/login");
+  if (!(await isAuthenticated())) redirect("/admin/login");
 
   const articles = await prisma.article.findMany({
     orderBy: { updatedAt: "desc" },

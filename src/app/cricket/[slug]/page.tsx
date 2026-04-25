@@ -8,9 +8,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const article = await prisma.article.findUnique({ where: { slug: params.slug } });
+  const { slug } = await params;
+  const article = await prisma.article.findUnique({ where: { slug } });
   if (!article) return { title: "Not found" };
   return {
     title: article.title,
@@ -31,8 +32,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function CricketArticlePage({ params }: { params: { slug: string } }) {
-  const article = await prisma.article.findUnique({ where: { slug: params.slug } });
+export default async function CricketArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const article = await prisma.article.findUnique({ where: { slug } });
   if (!article || article.sport !== "CRICKET" || article.status !== "PUBLISHED") {
     notFound();
   }

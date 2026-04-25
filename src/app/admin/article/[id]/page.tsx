@@ -73,10 +73,11 @@ async function deleteArticle(formData: FormData) {
 
 const STATUSES = ["DRAFT", "APPROVED", "SCHEDULED", "PUBLISHED", "ARCHIVED"] as const;
 
-export default async function ArticleEditor({ params }: { params: { id: string } }) {
-  if (!isAuthenticated()) redirect("/admin/login");
+export default async function ArticleEditor({ params }: { params: Promise<{ id: string }> }) {
+  if (!(await isAuthenticated())) redirect("/admin/login");
 
-  const article = await prisma.article.findUnique({ where: { id: params.id } });
+  const { id } = await params;
+  const article = await prisma.article.findUnique({ where: { id } });
   if (!article) notFound();
 
   const scheduledLocal = article.scheduledFor
