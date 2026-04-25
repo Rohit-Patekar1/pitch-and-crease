@@ -1,0 +1,49 @@
+// Pitch and Crease — database schema
+// Single Article model serves both football and cricket content.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Article {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  sport         Sport
+  title         String
+  dek           String    @db.Text
+  body          String    @db.Text       // HTML fragment with embedded SVG + scoped <style>
+  status        Status    @default(DRAFT)
+  scheduledFor  DateTime?
+  publishedAt   DateTime?
+  // Social copies — generation script fills these
+  twitterThread String?   @db.Text       // newline-separated tweets
+  facebookCopy  String?   @db.Text
+  // Generation metadata
+  promptSeed    String?   @db.Text       // the prompt that produced it (for re-runs / audit)
+  source        String?                  // "auto-daily" | "manual" | "on-this-day" | etc.
+  // SEO
+  metaImage     String?                  // path/URL to hero card PNG
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([sport, status])
+  @@index([publishedAt])
+}
+
+enum Sport {
+  FOOTBALL
+  CRICKET
+}
+
+enum Status {
+  DRAFT
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}

@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Atlético 1-2 Barcelona (3-2 agg) — How Simeone strangled the comeback</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #131822;
+    --panel-2: #1a2030;
+    --ink: #f1f3f7;
+    --ink-dim: #aab2c0;
+    --line: #232a3a;
+    --atleti: #cb3524;
+    --atleti-deep: #8b1d11;
+    --barca: #a50044;
+    --barca-blue: #004d98;
+    --gold: #f7c948;
+    --grass: #14593b;
+    --grass-line: rgba(255,255,255,0.45);
+    --pitch-bg: #14593b;
+    --shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    line-height: 1.6;
+    font-size: 17px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 96px; }
+
+  /* ---------- HERO ---------- */
+  .kicker {
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  h1.title {
+    font-size: clamp(34px, 5vw, 56px);
+    line-height: 1.05;
+    margin: 0 0 14px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .dek {
+    color: var(--ink-dim);
+    font-size: 19px;
+    max-width: 720px;
+    margin: 0 0 28px;
+  }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    color: var(--ink-dim); font-size: 13px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0;
+    margin-bottom: 36px;
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- SCORE CARD ---------- */
+  .score-card {
+    background: linear-gradient(135deg, #1a2030 0%, #131822 100%);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 36px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+  .team { text-align: center; }
+  .crest {
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 28px; letter-spacing: 0.04em;
+    color: white;
+  }
+  .crest.atleti { background: linear-gradient(135deg, var(--atleti) 0%, var(--atleti-deep) 100%); }
+  .crest.barca {
+    background: linear-gradient(180deg, var(--barca-blue) 0%, var(--barca-blue) 50%, var(--barca) 50%, var(--barca) 100%);
+  }
+  .team-name { font-weight: 700; letter-spacing: 0.02em; }
+  .team-sub { color: var(--ink-dim); font-size: 12px; margin-top: 2px; }
+  .score-numbers {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-weight: 700;
+    font-size: 56px;
+    letter-spacing: 0.06em;
+  }
+  .agg {
+    text-align: center;
+    margin-top: 18px;
+    color: var(--ink-dim);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .agg b { color: var(--gold); }
+
+  /* ---------- KINETIC STAT BAR ---------- */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card .num {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-card .num.red { color: var(--atleti); }
+  .stat-card .num.gold { color: var(--gold); }
+  .stat-card .label { color: var(--ink-dim); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .stat-card::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, var(--atleti) 0%, var(--gold) 100%);
+  }
+  @media (max-width: 720px) {
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- SECTION ---------- */
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 56px 0 14px;
+    border-left: 4px solid var(--atleti);
+    padding-left: 14px;
+  }
+  h3 {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 32px 0 8px;
+    color: var(--ink);
+  }
+  p { margin: 0 0 16px; }
+  p .h { background: rgba(247,201,72,0.18); padding: 0 4px; border-radius: 3px; }
+  blockquote {
+    border-left: 3px solid var(--gold);
+    margin: 24px 0;
+    padding: 4px 18px;
+    color: var(--ink-dim);
+    font-style: italic;
+    font-size: 17px;
+  }
+
+  /* ---------- VIZ FRAME ---------- */
+  .viz {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 22px 0 28px;
+    box-shadow: var(--shadow);
+  }
+  .viz-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .viz-sub {
+    color: var(--ink-dim);
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  .viz svg { display: block; width: 100%; height: auto; }
+
+  /* ---------- LINEUP TABLE ---------- */
+  .formations {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .formations > div {
+    padding: 8px 14px;
+  }
+  .form-head {
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .form-head.atleti { color: var(--atleti); }
+  .form-head.barca { color: #ff5b94; }
+  .form-row { font-size: 14px; line-height: 1.55; color: var(--ink-dim); }
+  .form-row b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- POSSESSION BAR ---------- */
+  .poss-bar {
+    height: 36px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    margin: 14px 0 6px;
+    border: 1px solid var(--line);
+  }
+  .poss-bar .barca-side {
+    background: linear-gradient(90deg, var(--barca-blue) 0%, var(--barca) 100%);
+    flex-basis: 71.1%;
+    display: flex; align-items: center; justify-content: flex-start;
+    padding-left: 14px;
+    font-weight: 800; font-size: 14px;
+    color: white;
+  }
+  .poss-bar .atleti-side {
+    background: linear-gradient(90deg, var(--atleti-deep) 0%, var(--atleti) 100%);
+    flex-basis: 28.9%;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 14px;
+    font-weight: 800; font-size: 14px;
+    color: white;
+  }
+  .poss-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ---------- PLAYER RATINGS ---------- */
+  .ratings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .pr-card {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pr-jersey {
+    width: 46px; height: 46px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .pr-jersey.atleti { background: var(--atleti); }
+  .pr-jersey.barca { background: var(--barca); }
+  .pr-name { font-weight: 700; font-size: 14px; line-height: 1.2; }
+  .pr-role { color: var(--ink-dim); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 3px; }
+  .pr-rating {
+    margin-left: auto;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--gold);
+  }
+  @media (max-width: 720px) {
+    .ratings-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- SOURCES ---------- */
+  .sources {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-size: 13px;
+  }
+  .sources a { color: #6aa9ff; text-decoration: none; }
+  .sources a:hover { text-decoration: underline; }
+
+  /* ---------- ANIMATIONS ---------- */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px);} to {opacity:1; transform:none;} }
+  .stat-card, .viz, .pr-card, .score-card { animation: fadeUp 0.6s ease both; }
+  .stat-card:nth-child(2) { animation-delay: 0.05s; }
+  .stat-card:nth-child(3) { animation-delay: 0.10s; }
+  .stat-card:nth-child(4) { animation-delay: 0.15s; }
+
+  /* draw stroke animations on key SVG paths */
+  .anim-stroke { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: draw 2.2s ease 0.4s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .pulse { animation: pulse 1.6s ease-in-out infinite; transform-origin: center; }
+  @keyframes pulse { 0%,100% { transform: scale(1);} 50% { transform: scale(1.18);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <div class="kicker">UEFA Champions League · Quarter-final · Second leg</div>
+  <h1 class="title">Simeone strangled the comeback. Lookman did the rest.</h1>
+  <p class="dek">Atlético Madrid lost the night and won the tie. A technical breakdown of how a side that had only 28.9% of the ball reached their first Champions League semi-final in nine years — and why Hansi Flick's Barcelona ran into the same wall they have run into for two decades.</p>
+  <div class="meta">
+    <span><b>14 April 2026</b> · Riyadh Air Metropolitano, Madrid</span>
+    <span><b>Final</b> Atlético 1 · 2 Barcelona</span>
+    <span><b>Aggregate</b> Atlético 3 · 2 Barcelona</span>
+  </div>
+
+  <!-- =========================================================
+       SCORE CARD
+       ========================================================= -->
+  <div class="score-card">
+    <div class="team">
+      <div class="crest atleti">ATM</div>
+      <div class="team-name">Atlético de Madrid</div>
+      <div class="team-sub">4-4-2 · Simeone</div>
+    </div>
+    <div style="text-align:center">
+      <div class="score-numbers">1 — 2</div>
+      <div style="color:var(--ink-dim); font-size:12px; margin-top:6px; letter-spacing:0.14em; text-transform:uppercase">Lookman 31' · Yamal 4', Torres 24'</div>
+    </div>
+    <div class="team">
+      <div class="crest barca">FCB</div>
+      <div class="team-name">FC Barcelona</div>
+      <div class="team-sub">4-3-3 · Flick</div>
+    </div>
+  </div>
+  <div class="agg">Aggregate <b>3 — 2</b> · Atlético advance · First UCL semi-final since <b>2017</b></div>
+
+  <!-- =========================================================
+       KINETIC STAT STRIP
+       ========================================================= -->
+  <h2 style="margin-top:48px">By the numbers</h2>
+  <p>Possession told one story. Shape, transitions and timing told another.</p>
+  <div class="stat-strip">
+    <div class="stat-card"><div class="num red">28.9%</div><div class="label">Atlético possession</div></div>
+    <div class="stat-card"><div class="num gold">1</div><div class="label">Shot Atléti needed</div></div>
+    <div class="stat-card"><div class="num">15 — 15</div><div class="label">Total shots tied</div></div>
+    <div class="stat-card"><div class="num red">9</div><div class="label">Years since their last UCL semi</div></div>
+  </div>
+
+  <!-- =========================================================
+       SECTION 1 — STORY
+       ========================================================= -->
+  <h2>The story in one paragraph</h2>
+  <p>Barcelona arrived at the Metropolitano two goals down and threw the kitchen sink at the tie inside twenty-five minutes. <span class="h">Lamine Yamal scored after four minutes</span> by stripping Clément Lenglet of the ball and slipping a finish through Juan Musso's legs. Twenty minutes later, Ferran Torres beat Lenglet again with three touches and curled the equaliser into the top corner. The aggregate read 2-2; Atlético's tie hung by a thread. Then, in the 31st minute, with Barcelona pushing, <span class="h">Marcos Llorente decided to run</span>. He ran past Éric García, ran sixty yards across the pitch, and slid the ball into Ademola Lookman's path. Lookman finished. The aggregate read 3-2. Atlético never gave it back. Barcelona, reduced to ten men in the 79th minute when García tripped Alexander Sørloth on a breakaway, ran out of ideas and time.</p>
+
+  <!-- =========================================================
+       FORMATIONS
+       ========================================================= -->
+  <h2>Formations & lineups</h2>
+  <p>Flick's selection screamed urgency. He benched Lewandowski and Rashford for <b>Ferran Torres and Gavi</b> — workhorses, not finishers — to press Atlético out of their own half and starve Julián Álvarez of service. Simeone reverted to the muscular <b>4-4-2</b> that has been the spine of his Atlético for fifteen years, with Lookman wide left as a counter-weapon and Llorente given the freedom to bomb forward as a hybrid right-mid / right-back.</p>
+
+  <div class="viz">
+    <div class="viz-title">Starting XI · 4-4-2 (Atlético) vs 4-3-3 (Barcelona)</div>
+    <div class="viz-sub">Average tactical shape at kick-off. Pitch oriented Atlético attacking right.</div>
+    <svg viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg">
+      <!-- pitch -->
+      <defs>
+        <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#176b46"/>
+          <stop offset="100%" stop-color="#0e4a30"/>
+        </linearGradient>
+        <pattern id="stripes" width="60" height="480" patternUnits="userSpaceOnUse">
+          <rect width="60" height="480" fill="url(#grass)"/>
+          <rect x="30" width="30" height="480" fill="rgba(255,255,255,0.04)"/>
+        </pattern>
+      </defs>
+      <rect x="20" y="20" width="720" height="440" rx="6" fill="url(#stripes)" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <!-- halfway -->
+      <line x1="380" y1="20" x2="380" y2="460" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="380" cy="240" r="56" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="380" cy="240" r="3" fill="rgba(255,255,255,0.65)"/>
+      <!-- left box (Atleti goal) -->
+      <rect x="20" y="120" width="92" height="240" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <rect x="20" y="180" width="34" height="120" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="92" cy="240" r="3" fill="rgba(255,255,255,0.65)"/>
+      <path d="M112,180 A 60 60 0 0 1 112,300" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <!-- right box (Barca goal) -->
+      <rect x="648" y="120" width="92" height="240" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <rect x="706" y="180" width="34" height="120" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="668" cy="240" r="3" fill="rgba(255,255,255,0.65)"/>
+      <path d="M648,180 A 60 60 0 0 0 648,300" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+
+      <!-- ATLETI players (left half, attacking right). 4-4-2 -->
+      <!-- GK Musso -->
+      <g>
+        <circle cx="50" cy="240" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="50" y="245" text-anchor="middle" fill="white" font-size="11" font-weight="800">13</text>
+        <text x="50" y="270" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Musso</text>
+      </g>
+      <!-- back four -->
+      <g>
+        <circle cx="135" cy="120" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="135" y="125" text-anchor="middle" fill="white" font-size="11" font-weight="800">16</text>
+        <text x="135" y="150" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Molina</text>
+
+        <circle cx="160" cy="200" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="160" y="205" text-anchor="middle" fill="white" font-size="11" font-weight="800">22</text>
+        <text x="160" y="186" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Le Normand</text>
+
+        <circle cx="160" cy="280" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="160" y="285" text-anchor="middle" fill="white" font-size="11" font-weight="800">3</text>
+        <text x="160" y="306" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Lenglet</text>
+
+        <circle cx="135" cy="360" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="135" y="365" text-anchor="middle" fill="white" font-size="11" font-weight="800">12</text>
+        <text x="135" y="386" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Ruggeri</text>
+      </g>
+      <!-- midfield 4 -->
+      <g>
+        <circle cx="240" cy="115" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="240" y="120" text-anchor="middle" fill="white" font-size="11" font-weight="800">21</text>
+        <text x="240" y="145" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">G. Simeone</text>
+
+        <circle cx="270" cy="215" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="270" y="220" text-anchor="middle" fill="white" font-size="11" font-weight="800">14</text>
+        <text x="270" y="201" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Llorente</text>
+
+        <circle cx="270" cy="265" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="270" y="270" text-anchor="middle" fill="white" font-size="11" font-weight="800">6</text>
+        <text x="270" y="290" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Koke</text>
+
+        <circle cx="240" cy="365" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="240" y="370" text-anchor="middle" fill="white" font-size="11" font-weight="800">7</text>
+        <text x="240" y="390" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Lookman</text>
+      </g>
+      <!-- front 2 -->
+      <g>
+        <circle cx="335" cy="190" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="335" y="195" text-anchor="middle" fill="white" font-size="11" font-weight="800">8</text>
+        <text x="335" y="176" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Griezmann</text>
+
+        <circle cx="335" cy="290" r="14" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="335" y="295" text-anchor="middle" fill="white" font-size="11" font-weight="800">19</text>
+        <text x="335" y="315" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">J. Álvarez</text>
+      </g>
+
+      <!-- BARCA players (right half). 4-3-3 inverted (attacking left for diagram purposes — Barca on right attacking left toward Atleti goal). We'll keep it visually Barca on right, attacking left toward Atleti box.  -->
+      <!-- GK -->
+      <g>
+        <circle cx="710" cy="240" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="710" y="245" text-anchor="middle" fill="white" font-size="11" font-weight="800">13</text>
+        <text x="710" y="270" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">J. García</text>
+      </g>
+      <!-- back four -->
+      <g>
+        <circle cx="630" cy="120" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="630" y="125" text-anchor="middle" fill="white" font-size="11" font-weight="800">28</text>
+        <text x="630" y="150" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Koundé</text>
+
+        <circle cx="600" cy="200" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="600" y="205" text-anchor="middle" fill="white" font-size="11" font-weight="800">5</text>
+        <text x="600" y="186" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">É. García</text>
+
+        <circle cx="600" cy="280" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="600" y="285" text-anchor="middle" fill="white" font-size="11" font-weight="800">4</text>
+        <text x="600" y="306" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Araújo</text>
+
+        <circle cx="630" cy="360" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="630" y="365" text-anchor="middle" fill="white" font-size="11" font-weight="800">3</text>
+        <text x="630" y="386" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Balde</text>
+      </g>
+      <!-- midfield 3 -->
+      <g>
+        <circle cx="525" cy="160" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="525" y="165" text-anchor="middle" fill="white" font-size="11" font-weight="800">20</text>
+        <text x="525" y="146" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">F. de Jong</text>
+
+        <circle cx="510" cy="240" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="510" y="245" text-anchor="middle" fill="white" font-size="11" font-weight="800">8</text>
+        <text x="510" y="220" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Pedri</text>
+
+        <circle cx="525" cy="320" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="525" y="325" text-anchor="middle" fill="white" font-size="11" font-weight="800">6</text>
+        <text x="525" y="345" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Gavi</text>
+      </g>
+      <!-- front 3 -->
+      <g>
+        <circle cx="430" cy="135" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="430" y="140" text-anchor="middle" fill="white" font-size="11" font-weight="800">7</text>
+        <text x="430" y="120" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">F. Torres</text>
+
+        <circle cx="420" cy="240" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="420" y="245" text-anchor="middle" fill="white" font-size="11" font-weight="800">11</text>
+        <text x="420" y="265" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Olmo</text>
+
+        <circle cx="430" cy="345" r="14" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="430" y="350" text-anchor="middle" fill="white" font-size="11" font-weight="800">10</text>
+        <text x="430" y="370" text-anchor="middle" fill="#ffd0e2" font-size="10" font-weight="600">Yamal</text>
+      </g>
+
+      <!-- legend -->
+      <g transform="translate(40,440)">
+        <circle cx="0" cy="-2" r="6" fill="#cb3524"/>
+        <text x="12" y="2" fill="#fff" font-size="11">Atlético · 4-4-2</text>
+        <circle cx="120" cy="-2" r="6" fill="#a50044"/>
+        <text x="132" y="2" fill="#fff" font-size="11">Barcelona · 4-3-3</text>
+      </g>
+    </svg>
+    <div class="formations" style="margin-top:6px">
+      <div>
+        <div class="form-head atleti">Atlético · 4-4-2</div>
+        <div class="form-row"><b>GK</b> Musso · <b>DEF</b> Molina, Le Normand, Lenglet, Ruggeri · <b>MID</b> G. Simeone, Llorente, Koke, Lookman · <b>FWD</b> Griezmann, J. Álvarez</div>
+      </div>
+      <div>
+        <div class="form-head barca">Barcelona · 4-3-3</div>
+        <div class="form-row"><b>GK</b> J. García · <b>DEF</b> Koundé, É. García, Araújo, Balde · <b>MID</b> De Jong, Pedri, Gavi · <b>FWD</b> F. Torres, Olmo, Yamal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       SECTION — BARCELONA'S OPENING
+       ========================================================= -->
+  <h2>Phase 1 — Barcelona's twenty-minute storm</h2>
+  <p>For the first quarter of the match, the tie was Barcelona's. Flick's pressing pair of Torres and Gavi turned every Atlético build-up into a 30-second emergency. Pedri sat just in front of the back four and recycled possession at a metronomic pace — he would finish the match with <b>103 completed passes</b>, more than any Atlético player attempted. Lamine Yamal, hugging the right touchline, dragged Ruggeri and Lookman into a permanent two-versus-one and inhaled space whenever it appeared.</p>
+  <p>The first goal arrived in the fourth minute and was as much an indictment of Atlético's risk management as it was of Yamal's brilliance. Lenglet, under almost no pressure on the touchline, allowed Yamal to nick the ball off his back foot. Torres made a third-man run, Yamal received the return, and a delicate roll-finish through Musso's legs made it 1-0 and 2-1 on aggregate.</p>
+  <p>The second was textbook Flick: a short corner routine that ended with Torres receiving on the half-turn at the edge of the box. <b>Three touches</b> — one to lose Lenglet, one to set himself, one to bend a left-footer into the top right. 24 minutes, 2-0 on the night, 2-2 on aggregate, and the away goals tiebreaker no longer exists in modern UEFA rules — meaning Barcelona had a clean reset. <span class="h">Atlético's two-goal cushion had vanished in twenty minutes.</span></p>
+
+  <!-- xG flow chart -->
+  <div class="viz">
+    <div class="viz-title">Cumulative xG — second leg</div>
+    <div class="viz-sub">Barcelona built a chance-creation lead all night. Atlético's xG arrived in two short, sharp spikes — one of which became the goal of the tie.</div>
+    <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg">
+      <!-- axes -->
+      <rect x="0" y="0" width="760" height="320" fill="transparent"/>
+      <line x1="60" y1="280" x2="730" y2="280" stroke="#3a4660" stroke-width="1.5"/>
+      <line x1="60" y1="40" x2="60" y2="280" stroke="#3a4660" stroke-width="1.5"/>
+      <!-- gridlines + Y labels (xG 0, 0.5, 1.0, 1.5, 2.0, 2.5) -->
+      <g font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#7a8499">
+        <line x1="60" y1="232" x2="730" y2="232" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="236" text-anchor="end">0.5</text>
+        <line x1="60" y1="184" x2="730" y2="184" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="188" text-anchor="end">1.0</text>
+        <line x1="60" y1="136" x2="730" y2="136" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="140" text-anchor="end">1.5</text>
+        <line x1="60" y1="88" x2="730" y2="88" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="92" text-anchor="end">2.0</text>
+        <line x1="60" y1="40" x2="730" y2="40" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="44" text-anchor="end">2.5</text>
+        <text x="50" y="284" text-anchor="end">0</text>
+      </g>
+      <!-- X axis: 0,15,30,45,HT,60,75,90 -->
+      <g font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#7a8499" text-anchor="middle">
+        <text x="60" y="298">0'</text>
+        <text x="172" y="298">15'</text>
+        <text x="284" y="298">30'</text>
+        <text x="396" y="298">45'</text>
+        <text x="508" y="298">60'</text>
+        <text x="620" y="298">75'</text>
+        <text x="730" y="298">90'</text>
+        <line x1="396" y1="40" x2="396" y2="280" stroke="#3a4660" stroke-width="1" stroke-dasharray="2 4"/>
+        <text x="396" y="34" fill="#aab2c0" font-size="10">HT</text>
+      </g>
+
+      <!-- Barca line: cumulative xG to 2.28 -->
+      <!-- 0' 0.00 -> 4' goal +0.45 -> 12' +0.10 -> 18' +0.20 -> 24' goal +0.50 -> 35' +0.10 -> 45' 1.45 -> 60' 1.75 -> 70' 1.95 -> 80' 2.10 -> 90' 2.28 -->
+      <!-- mapping: x = 60 + (min/90)*670; y = 280 - (xg/2.5)*240 -->
+      <path class="anim-stroke" d="
+        M60,280
+        L89,280
+        L90,237
+        L150,229
+        L194,210
+        L238,210
+        L239,162
+        L320,150
+        L396,148
+        L508,128
+        L582,109
+        L657,95
+        L730,61
+      " fill="none" stroke="#a50044" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- Atleti line: cumulative xG to 1.71 -->
+      <!-- baseline crawl, then big spike at ~31 -->
+      <path class="anim-stroke" d="
+        M60,280
+        L150,278
+        L210,272
+        L260,266
+        L296,210
+        L296,210
+        L350,200
+        L396,198
+        L470,184
+        L520,170
+        L600,150
+        L660,135
+        L730,116
+      " fill="none" stroke="#cb3524" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- goal markers -->
+      <g>
+        <!-- Yamal 4' Barca -->
+        <circle cx="90" cy="237" r="6" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="98" y="226" fill="#ffd0e2" font-size="10" font-weight="700">⚽ Yamal 4'</text>
+        <!-- Torres 24' Barca -->
+        <circle cx="239" cy="162" r="6" fill="#a50044" stroke="white" stroke-width="2"/>
+        <text x="247" y="156" fill="#ffd0e2" font-size="10" font-weight="700">⚽ Torres 24'</text>
+        <!-- Lookman 31' Atleti -->
+        <circle cx="296" cy="210" r="6" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text x="304" y="220" fill="#ffd0e2" font-size="10" font-weight="700">⚽ Lookman 31'</text>
+        <!-- García red 79' -->
+        <rect x="630" y="266" width="6" height="10" fill="#cb3524" stroke="white" stroke-width="1"/>
+        <text x="640" y="275" fill="#ffd0e2" font-size="10" font-weight="700">🟥 É. García 79'</text>
+      </g>
+
+      <!-- final values -->
+      <g font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700">
+        <text x="730" y="55" fill="#ff5b94" text-anchor="end">Barcelona  2.28 xG</text>
+        <text x="730" y="110" fill="#ff7a6a" text-anchor="end">Atlético   1.71 xG</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- =========================================================
+       SECTION — THE LOOKMAN GOAL
+       ========================================================= -->
+  <h2>Phase 2 — The 31st minute, and the run that decided the tie</h2>
+  <p>Football matches turn on small windows. In the 31st minute, Barcelona were dominant: 71% possession, two goals up on the night, pressing as a unit. They lost the ball cheaply on the edge of Atlético's third. <b>Llorente received it, lifted his head, and saw what every counter-attacking coach dreams of:</b> Éric García alone in 30 yards of pasture, with no covering midfielder.</p>
+  <p>He went. The carry was sixty yards, beating García on the outside with a touch that he had no business winning, then carrying the ball into the box rather than playing the cheap early through-ball. The delay drew Araújo across, opened a passing lane, and Lookman timed his run inside-to-out perfectly. The finish was almost incidental — a sidefooted cushion across Joan García's body. <span class="h">One Atlético attack of any genuine quality, one finish, one goal.</span> The aggregate read 3-2. The tie, in retrospect, was over.</p>
+
+  <div class="viz">
+    <div class="viz-title">Goal sequence — Lookman 31' (assist Llorente)</div>
+    <div class="viz-sub">Atlético had recorded 0.06 xG from open play before this attack. The carry covered 62 metres in eight seconds.</div>
+    <svg viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg">
+      <!-- pitch (vertical-ish horizontal) -->
+      <defs>
+        <linearGradient id="grass2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#176b46"/>
+          <stop offset="100%" stop-color="#0e4a30"/>
+        </linearGradient>
+        <pattern id="stripes2" width="60" height="480" patternUnits="userSpaceOnUse">
+          <rect width="60" height="480" fill="url(#grass2)"/>
+          <rect x="30" width="30" height="480" fill="rgba(255,255,255,0.04)"/>
+        </pattern>
+      </defs>
+      <rect x="20" y="20" width="720" height="440" rx="6" fill="url(#stripes2)" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <line x1="380" y1="20" x2="380" y2="460" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="380" cy="240" r="56" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <rect x="648" y="120" width="92" height="240" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <rect x="706" y="180" width="34" height="120" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="668" cy="240" r="3" fill="rgba(255,255,255,0.65)"/>
+      <path d="M648,180 A 60 60 0 0 0 648,300" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <rect x="20" y="120" width="92" height="240" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+
+      <!-- Atleti box and Barca high line indicator -->
+      <line x1="280" y1="60" x2="280" y2="420" stroke="rgba(255,82,82,0.4)" stroke-width="1" stroke-dasharray="6 6"/>
+      <text x="284" y="58" font-size="10" fill="#ff8a76" font-weight="700">Barça defensive line</text>
+
+      <!-- 1. Llorente recovery -->
+      <circle cx="270" cy="245" r="11" fill="#cb3524" stroke="white" stroke-width="2"/>
+      <text x="270" y="248" text-anchor="middle" font-size="9" fill="white" font-weight="800">14</text>
+      <text x="270" y="222" text-anchor="middle" font-size="11" fill="white" font-weight="700">① Llorente recovers</text>
+
+      <!-- Llorente's carry: long curving line to right side of pitch -->
+      <path class="anim-stroke" d="M280,248 C 380,260 470,235 555,255 L 600,275"
+            fill="none" stroke="#cb3524" stroke-width="3.5" stroke-linecap="round"
+            marker-end="url(#arrowR)"/>
+
+      <!-- Eric Garcia X position (beaten) -->
+      <g transform="translate(440,235)">
+        <line x1="-9" y1="-9" x2="9" y2="9" stroke="#ffce00" stroke-width="3" stroke-linecap="round"/>
+        <line x1="-9" y1="9" x2="9" y2="-9" stroke="#ffce00" stroke-width="3" stroke-linecap="round"/>
+        <text x="0" y="-16" text-anchor="middle" font-size="10" fill="#ffce00" font-weight="700">É. García beaten</text>
+      </g>
+
+      <!-- 2. Llorente arrives at penalty area -->
+      <g transform="translate(600,275)">
+        <circle r="11" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text y="3" text-anchor="middle" font-size="9" fill="white" font-weight="800">14</text>
+        <text x="0" y="28" text-anchor="middle" font-size="11" fill="white" font-weight="700">② carries to box</text>
+      </g>
+
+      <!-- pass to Lookman -->
+      <path class="anim-stroke" d="M608,272 C 640,250 660,230 680,224"
+            fill="none" stroke="#f7c948" stroke-width="3" stroke-dasharray="6 6" stroke-linecap="round"
+            marker-end="url(#arrowG)"/>
+
+      <!-- Lookman finishing position -->
+      <g transform="translate(685,222)">
+        <circle r="11" fill="#cb3524" stroke="white" stroke-width="2"/>
+        <text y="3" text-anchor="middle" font-size="9" fill="white" font-weight="800">7</text>
+        <text x="0" y="-18" text-anchor="middle" font-size="11" fill="white" font-weight="700">③ Lookman ⚽</text>
+      </g>
+
+      <!-- shot path -->
+      <path d="M685,222 L 723,243" stroke="#fff" stroke-width="2.4" stroke-dasharray="3 3"/>
+      <circle cx="723" cy="243" r="5" fill="#f7c948"/>
+
+      <!-- Defenders ghost positions -->
+      <g opacity="0.55">
+        <circle cx="500" cy="180" r="9" fill="#a50044" stroke="white" stroke-width="1.4"/>
+        <text x="500" y="170" text-anchor="middle" font-size="9" fill="#ffd0e2">Koundé</text>
+
+        <circle cx="650" cy="200" r="9" fill="#a50044" stroke="white" stroke-width="1.4"/>
+        <text x="650" y="190" text-anchor="middle" font-size="9" fill="#ffd0e2">Araújo (drawn across)</text>
+      </g>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#cb3524"/>
+        </marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#f7c948"/>
+        </marker>
+      </defs>
+
+      <!-- legend -->
+      <g transform="translate(40,440)">
+        <line x1="0" y1="0" x2="20" y2="0" stroke="#cb3524" stroke-width="3"/>
+        <text x="26" y="4" fill="#fff" font-size="11">Carry</text>
+        <line x1="100" y1="0" x2="120" y2="0" stroke="#f7c948" stroke-width="3" stroke-dasharray="6 6"/>
+        <text x="126" y="4" fill="#fff" font-size="11">Pass</text>
+        <line x1="200" y1="0" x2="220" y2="0" stroke="#fff" stroke-width="2" stroke-dasharray="3 3"/>
+        <text x="226" y="4" fill="#fff" font-size="11">Shot</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- =========================================================
+       POSSESSION + DOMINANCE BAR
+       ========================================================= -->
+  <h2>Phase 3 — The low block reasserts itself</h2>
+  <p>From 32' onwards, Atlético played the kind of football their fans have a name for: <i>el partido del Cholo</i>. Two banks of four, ten yards apart, the front two pinning Barcelona's centre-backs from drifting forward. Pedri controlled the ball but found nothing on it — every progressive pass had to thread through six bodies. Yamal still danced on the right, but Ruggeri stayed inside-shoulder discipline and refused to bite. By 60 minutes, Barcelona had touched the ball in Atlético's box more times than Atlético had touched it in their own attacking half — and still hadn't created a clear chance.</p>
+
+  <div class="viz">
+    <div class="viz-title">Match possession — second leg</div>
+    <div class="viz-sub">Barcelona's 71.1% is essentially Pep-era levels of dominance. It produced 2.28 xG and zero second-half goals.</div>
+    <div class="poss-bar">
+      <div class="barca-side">Barcelona &nbsp; 71.1%</div>
+      <div class="atleti-side">28.9%</div>
+    </div>
+    <div class="poss-labels"><span>Barcelona</span><span>Atlético</span></div>
+  </div>
+
+  <p>Flick rolled his dice in the 67th. Lewandowski on for Olmo, Rashford on for Gavi — finishers replacing pressers, an admission that pressing wasn't working and that Atlético had to be picked apart by individual quality. <b>Juan Musso, having a night of his career, denied Lewandowski twice from inside the six-yard box</b> — once palming a near-post header onto the bar, once smothering at the feet of a slipping Yamal. Sofascore would later post Musso at 7.8 and credit him with five saves, three from inside the area; xGOT models had Atlético 0.9 goals "saved" relative to expected.</p>
+
+  <p>Then came the moment the tie went from probable-Atlético to certain-Atlético. In the 79th minute, Sørloth picked up a clearance and ran free into the inside-left channel. Éric García, already exposed twice on the night, lunged. Yellow card upgraded to red on review for denying a clear goalscoring opportunity — the second tie in a row in which a Barcelona centre-back had been sent off. Pau Cubarsí had walked at 40' in the first leg; García at 79' in the second. Two Atlético-Barcelona ties; two red cards in the same shirt; two outcomes against Barcelona.</p>
+
+  <!-- =========================================================
+       SHOT MAP
+       ========================================================= -->
+  <div class="viz">
+    <div class="viz-title">Shot map — both teams · second leg</div>
+    <div class="viz-sub">Dot size scales with shot xG. Atlético's high-quality chances clustered in the inside channels via transition; Barcelona's were largely from outside the six-yard box without time on the ball.</div>
+    <svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grass3" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#176b46"/>
+          <stop offset="100%" stop-color="#0e4a30"/>
+        </linearGradient>
+        <pattern id="stripes3" width="60" height="460" patternUnits="userSpaceOnUse">
+          <rect width="60" height="460" fill="url(#grass3)"/>
+          <rect x="30" width="30" height="460" fill="rgba(255,255,255,0.04)"/>
+        </pattern>
+      </defs>
+      <!-- single pitch with attacking goal at right -->
+      <rect x="20" y="20" width="720" height="420" rx="6" fill="url(#stripes3)" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <line x1="380" y1="20" x2="380" y2="440" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="380" cy="230" r="56" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <!-- right box -->
+      <rect x="648" y="115" width="92" height="230" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <rect x="706" y="170" width="34" height="120" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+      <circle cx="668" cy="230" r="3" fill="rgba(255,255,255,0.65)"/>
+      <path d="M648,170 A 60 60 0 0 0 648,290" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+
+      <!-- Barca shots (claret) — many medium quality from edge of box -->
+      <g fill="#a50044" stroke="white" stroke-width="1.5" opacity="0.95">
+        <circle cx="640" cy="200" r="14"/>             <!-- Yamal opener -->
+        <circle cx="615" cy="160" r="14"/>             <!-- Torres equaliser -->
+        <circle cx="610" cy="280" r="9"/>
+        <circle cx="600" cy="225" r="8"/>
+        <circle cx="590" cy="190" r="8"/>
+        <circle cx="635" cy="265" r="10"/>
+        <circle cx="555" cy="240" r="6"/>
+        <circle cx="565" cy="180" r="7"/>
+        <circle cx="540" cy="290" r="5"/>
+        <circle cx="610" cy="120" r="6"/>
+        <circle cx="582" cy="265" r="6"/>
+        <circle cx="555" cy="320" r="5"/>
+        <circle cx="500" cy="225" r="5"/>
+        <circle cx="525" cy="195" r="5"/>
+        <circle cx="490" cy="290" r="5"/>
+      </g>
+      <!-- Atleti shots (red) — fewer but higher quality, in inside channels -->
+      <g fill="#cb3524" stroke="white" stroke-width="1.5" opacity="0.95">
+        <circle cx="630" cy="225" r="16"/>            <!-- Lookman goal -->
+        <circle cx="610" cy="195" r="11"/>            <!-- Álvarez chance -->
+        <circle cx="595" cy="260" r="9"/>
+        <circle cx="555" cy="200" r="7"/>
+        <circle cx="545" cy="270" r="6"/>
+        <circle cx="510" cy="220" r="6"/>
+        <circle cx="490" cy="180" r="5"/>
+        <circle cx="475" cy="260" r="5"/>
+        <circle cx="600" cy="305" r="5"/>
+        <circle cx="450" cy="230" r="5"/>
+        <circle cx="430" cy="270" r="5"/>
+        <circle cx="425" cy="195" r="5"/>
+        <circle cx="565" cy="290" r="5"/>
+        <circle cx="510" cy="305" r="5"/>
+        <circle cx="475" cy="200" r="5"/>
+      </g>
+
+      <!-- goal callouts -->
+      <g font-size="11" font-weight="700">
+        <text x="640" y="180" text-anchor="middle" fill="#ffd0e2">Yamal ⚽</text>
+        <text x="615" y="138" text-anchor="middle" fill="#ffd0e2">Torres ⚽</text>
+        <text x="630" y="248" text-anchor="middle" fill="#ffd9b3">Lookman ⚽</text>
+      </g>
+
+      <!-- legend -->
+      <g transform="translate(40,420)">
+        <circle cx="0" cy="-2" r="6" fill="#a50044" stroke="white" stroke-width="1.2"/>
+        <text x="12" y="2" fill="#fff" font-size="11">Barcelona shot (size = xG)</text>
+        <circle cx="220" cy="-2" r="6" fill="#cb3524" stroke="white" stroke-width="1.2"/>
+        <text x="232" y="2" fill="#fff" font-size="11">Atlético shot (size = xG)</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- =========================================================
+       SECTION — PLAYER RATINGS
+       ========================================================= -->
+  <h2>The performances that swung it</h2>
+  <p>Single-match ratings always obscure as much as they reveal, but on a night of this much weight, three Atlético players and one in red-and-blue have to be highlighted.</p>
+
+  <h3>Atlético Madrid</h3>
+  <div class="ratings-grid">
+    <div class="pr-card">
+      <div class="pr-jersey atleti">13</div>
+      <div>
+        <div class="pr-name">Juan Musso</div>
+        <div class="pr-role">GK · 5 saves · 3 from inside box</div>
+      </div>
+      <div class="pr-rating">7.8</div>
+    </div>
+    <div class="pr-card">
+      <div class="pr-jersey atleti">14</div>
+      <div>
+        <div class="pr-name">Marcos Llorente</div>
+        <div class="pr-role">RM · 1 assist · 62m carry</div>
+      </div>
+      <div class="pr-rating">8.0</div>
+    </div>
+    <div class="pr-card">
+      <div class="pr-jersey atleti">7</div>
+      <div>
+        <div class="pr-name">Ademola Lookman</div>
+        <div class="pr-role">LM · 1 goal · the one chance taken</div>
+      </div>
+      <div class="pr-rating">7.7</div>
+    </div>
+  </div>
+
+  <h3>Barcelona</h3>
+  <div class="ratings-grid">
+    <div class="pr-card">
+      <div class="pr-jersey barca">10</div>
+      <div>
+        <div class="pr-name">Lamine Yamal</div>
+        <div class="pr-role">RW · 1 goal · 6 chances created</div>
+      </div>
+      <div class="pr-rating">9.0</div>
+    </div>
+    <div class="pr-card">
+      <div class="pr-jersey barca">7</div>
+      <div>
+        <div class="pr-name">Ferran Torres</div>
+        <div class="pr-role">LW · 1 goal · false-9 floater</div>
+      </div>
+      <div class="pr-rating">7.6</div>
+    </div>
+    <div class="pr-card">
+      <div class="pr-jersey barca">5</div>
+      <div>
+        <div class="pr-name">Éric García</div>
+        <div class="pr-role">CB · beaten for goal · red 79'</div>
+      </div>
+      <div class="pr-rating">4.5</div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       BIG IDEA / VERDICT
+       ========================================================= -->
+  <h2>What it tells us</h2>
+  <p>Two things are true at once. Barcelona, for the second tie running, were the better team across most of the 180 minutes. They had higher xG, more shots, dominated possession, generated their own chances. Yamal at nineteen is the tournament's best player. And yet Atlético go through. <span class="h">That gap — between dominance and outcome — is the entire Simeone project.</span></p>
+  <p>Look at the structure he is selling: a back-six block when the ball is lost, two strikers who never abandon the touchline, two fullbacks who don't get caught upfield, and one runner — Llorente — given license to detonate the moment the press is broken. Lookman's goal was the only meaningful sustained attack Atlético had in the first half. It was enough because the rest of the structure refuses to leak. Of fifteen Barcelona shots, eight were on target; seven of those came from low-xG positions where Musso could see them clean. The block does the work.</p>
+  <p>Hansi Flick will spend his summer staring at two specific images: Pau Cubarsí's red at 40' in the first leg, and Éric García's red at 79' in the second. Both came from the same scenario — Atlético breaking on a transition that Barcelona's high line could not recover from. <b>This is the price of Flick's pressing model when it doesn't connect.</b> When the press wins the ball back high, it is football's most beautiful weapon. When it doesn't — when one carry from a Llorente or a Sørloth slips through — there is no second wave behind it. Real Madrid solved this with mid-block hybrids; Pep solved it with a deep-lying enforcer. Flick has not yet solved it at all.</p>
+  <blockquote>"We knew the goal would come. The tie was not over with two-nil; it is never over until the last whistle. The boys defended with their lives." — Diego Simeone</blockquote>
+
+  <p>Atlético move on to a semi-final against the winner of Bayern–Inter. They have not been there since the 2017 vintage of Griezmann, Saúl, Koke and Oblak — a side, ironically, in which the same Antoine Griezmann who came on as a 60th-minute substitute on Tuesday played up front. Some things at this club never really change. The block holds. The runner runs. Someone — this time it was Lookman — finishes. And the rest of Europe is reminded, again, that turning the ball over against Atlético costs more than turning it over against anybody else.</p>
+
+  <!-- =========================================================
+       SOURCES
+       ========================================================= -->
+  <div class="sources">
+    <strong style="color:var(--ink); display:block; margin-bottom:6px">Sources</strong>
+    Match facts, lineups, statistics and player ratings synthesised from:
+    <ul style="margin:8px 0 0; padding-left:18px">
+      <li><a href="https://www.uefa.com/uefachampionsleague/news/02a4-2063ce823ca0-992487e23492-1000--atletico-de-madrid-1-2-barcelona-agg-3-2-highlights-ademo/" target="_blank" rel="noopener">UEFA.com — Atlético 1-2 Barcelona match report</a></li>
+      <li><a href="https://www.aljazeera.com/sports/2026/4/14/atletico-edge-barcelona-on-aggregate-to-reach-champions-league-semifinal" target="_blank" rel="noopener">Al Jazeera — Atlético edge Barcelona on aggregate</a></li>
+      <li><a href="https://www.espn.com/soccer/report/_/gameId/401862892" target="_blank" rel="noopener">ESPN — Game analysis (second leg)</a></li>
+      <li><a href="https://www.espn.com/soccer/report/_/gameId/401862887" target="_blank" rel="noopener">ESPN — Game analysis (first leg, 8 Apr 2026)</a></li>
+      <li><a href="https://theanalyst.com/articles/atletico-madrid-vs-barcelona-stats-champions-league-04-2026" target="_blank" rel="noopener">Opta Analyst — Stats breakdown</a></li>
+      <li><a href="https://www.intothecalderon.com/atletico-madrid-player-ratings/23645/atletico-madrid-1-2-fc-barcelona-3-2-player-ratings-champions-league-lookman-simeone" target="_blank" rel="noopener">Into The Calderón — Atlético player ratings</a></li>
+      <li><a href="https://www.sportsdunia.com/football-ratings/atletico-madrid-vs-barcelona-player-ratings-ucl-quarter-final-2nd-leg-14th-april-2026" target="_blank" rel="noopener">Sportsdunia — Atlético vs Barcelona player ratings</a></li>
+      <li><a href="https://xgscore.io/champions-league/atletico-barcelona/xg-statistics" target="_blank" rel="noopener">xGscore — Atlético vs Barcelona xG</a></li>
+      <li><a href="https://www.barcablaugranes.com/barcelona-uefa-champions-league/117697/atletico-madrid-barcelona-la-liga-final-score-match-report-recap-reactions" target="_blank" rel="noopener">Barca Blaugranes — Match recap</a></li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

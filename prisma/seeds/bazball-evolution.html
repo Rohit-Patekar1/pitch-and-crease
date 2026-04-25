@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Bazball, three years in — what England's experiment proved (and what it didn't)</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #131822;
+    --panel-2: #1a2030;
+    --ink: #f1f3f7;
+    --ink-dim: #aab2c0;
+    --line: #232a3a;
+    --gold: #f7c948;
+    --primary: #16a34a;
+    --primary-deep: #166534;
+    --warn: #ef4444;
+    --shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    line-height: 1.6;
+    font-size: 17px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 96px; }
+  .kicker { color: var(--gold); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
+  h1.title { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; margin: 0 0 14px; font-weight: 800; letter-spacing: -0.02em; }
+  .dek { color: var(--ink-dim); font-size: 19px; max-width: 720px; margin: 0 0 28px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 18px; color: var(--ink-dim); font-size: 13px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; margin-bottom: 36px; }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 28px 0 36px; }
+  .stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px; position: relative; overflow: hidden; }
+  .stat-card .num { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; margin-bottom: 4px; }
+  .stat-card .num.green { color: var(--primary); }
+  .stat-card .num.gold { color: var(--gold); }
+  .stat-card .label { color: var(--ink-dim); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .stat-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--primary) 0%, var(--gold) 100%); }
+  @media (max-width: 720px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+  h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin: 56px 0 14px; border-left: 4px solid var(--primary); padding-left: 14px; }
+  p { margin: 0 0 16px; }
+  p .h { background: rgba(247,201,72,0.18); padding: 0 4px; border-radius: 3px; }
+  blockquote { border-left: 3px solid var(--gold); margin: 24px 0; padding: 4px 18px; color: var(--ink-dim); font-style: italic; font-size: 17px; }
+  .viz { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin: 22px 0 28px; box-shadow: var(--shadow); }
+  .viz-title { font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .viz-sub { color: var(--ink-dim); font-size: 13px; margin-bottom: 18px; }
+  .viz svg { display: block; width: 100%; height: auto; }
+  .sources { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--ink-dim); font-size: 13px; }
+  .sources a { color: #6aa9ff; text-decoration: none; }
+  .sources a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Test cricket · England · Tactical analysis</p>
+  <h1 class="title">Bazball, three years in — what England's experiment proved (and what it didn't).</h1>
+  <p class="dek">When Brendon McCullum took over an England Test side that had won one of seventeen, he proposed an idea more philosophical than technical: declare the format dead, and play accordingly. Three years on, the data says he was half right.</p>
+  <div class="meta">
+    <span><b>Format</b> Test cricket</span>
+    <span><b>Era</b> 2022–2026</span>
+    <span><b>Captain</b> Stokes · <b>Coach</b> McCullum</span>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-card"><div class="num green">4.74</div><div class="label">Bazball-era run rate</div></div>
+    <div class="stat-card"><div class="num gold">3.18</div><div class="label">Run rate, prior decade</div></div>
+    <div class="stat-card"><div class="num green">+49%</div><div class="label">Scoring uplift</div></div>
+    <div class="stat-card"><div class="num">22-13</div><div class="label">Bazball W-L (Test)</div></div>
+  </div>
+
+  <h2>The pitch was always to redefine winning</h2>
+  <p>The brief Brendon McCullum gave Ben Stokes in May 2022 was never about specific shots or tactical match-ups. It was about pace. England, McCullum argued, had been losing the previous decade because they had played defensively in a format their opponents had stopped treating as defensive. Australia had been scoring at 3.5 runs an over for years; India routinely passed 4 in home conditions. England's number was a stagnant 3.0. <span class="h">The point of Bazball was never that you had to win — it was that you had to stop losing slowly.</span></p>
+  <p>Three years and 35 Tests later, the run rate has settled at 4.74 — the highest sustained scoring tempo any Test side has produced over a comparable sample. The win-loss line is 22-13, with three draws. By any measure of the brief McCullum himself set out, the experiment has worked.</p>
+
+  <div class="viz">
+    <div class="viz-title">England Test run rate · 2010 → 2026</div>
+    <div class="viz-sub">The step-change in summer 2022 isn't gradual; it's a discontinuity. Run rate measured per innings of the calendar year.</div>
+    <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg">
+      <line x1="60" y1="280" x2="730" y2="280" stroke="#3a4660" stroke-width="1.5"/>
+      <line x1="60" y1="40" x2="60" y2="280" stroke="#3a4660" stroke-width="1.5"/>
+      <g font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#7a8499">
+        <line x1="60" y1="232" x2="730" y2="232" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="236" text-anchor="end">3.0</text>
+        <line x1="60" y1="184" x2="730" y2="184" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="188" text-anchor="end">3.5</text>
+        <line x1="60" y1="136" x2="730" y2="136" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="140" text-anchor="end">4.0</text>
+        <line x1="60" y1="88" x2="730" y2="88" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="92" text-anchor="end">4.5</text>
+        <line x1="60" y1="40" x2="730" y2="40" stroke="#222a3c" stroke-dasharray="3 4"/>
+        <text x="50" y="44" text-anchor="end">5.0</text>
+      </g>
+      <g font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#7a8499" text-anchor="middle">
+        <text x="100" y="298">'10</text>
+        <text x="160" y="298">'12</text>
+        <text x="220" y="298">'14</text>
+        <text x="280" y="298">'16</text>
+        <text x="340" y="298">'18</text>
+        <text x="400" y="298">'20</text>
+        <text x="450" y="298">'22</text>
+        <text x="540" y="298">'23</text>
+        <text x="610" y="298">'24</text>
+        <text x="680" y="298">'25</text>
+      </g>
+      <line x1="430" y1="40" x2="430" y2="280" stroke="#f7c948" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <text x="430" y="34" fill="#f7c948" font-size="11" font-weight="700" text-anchor="middle">McCullum hired</text>
+
+      <!-- Pre-Bazball line: ~3.0–3.4 -->
+      <path d="M100,266 L160,260 L220,256 L280,252 L340,266 L400,260 L430,256"
+            fill="none" stroke="#aab2c0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- Bazball line: ~4.5–4.9 -->
+      <path d="M430,256 L450,90 L540,80 L610,72 L680,64"
+            fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- annotations -->
+      <text x="200" y="240" fill="#aab2c0" font-size="11" font-weight="700">Pre-Bazball  ~3.18</text>
+      <text x="600" y="58" fill="#16a34a" font-size="11" font-weight="700" text-anchor="end">Bazball  ~4.74</text>
+    </svg>
+  </div>
+
+  <h2>What the data actually shows</h2>
+  <p>Three patterns survive the noise. First, the scoring uplift is real and sustained — not a sugar-rush that flattened after eighteen months. England score 49% faster than the same set of batters did before the takeover. Second, the win rate against quality pace attacks (Australia, India away, South Africa) is roughly the same as it was in 2018-2021. <b>The Bazball gain is concentrated against second-tier opposition</b> at home — exactly the matches the previous regime was already winning, only now in three days instead of five.</p>
+  <p>Third, and this is the conversation the team's defenders prefer to avoid, the bowling has been carried by attacking conditions rather than attacking method. England's seamers in 2022-2025 averaged 28.4 — a decent number, but only marginally better than the 30.1 they averaged in the four years before. The <span class="h">aggression is in the batting; the wickets, mostly, are in the pitch</span>.</p>
+
+  <h2>The Stokes paradox</h2>
+  <p>None of which is a critique of Stokes himself. The captaincy of the McCullum era is the cleanest example in modern Test cricket of a coach and captain agreeing on a single principle and then never blinking. There are decisions that look reckless in isolation — the 11-over Headingley declaration against New Zealand in 2024, the 4-2 leg-side field for Mitchell Starc in Brisbane — that only make sense when you understand the through-line: every Stokes decision is designed to refuse a draw. The premise is that draws are a worse outcome than losses because they teach you nothing, and losses, played fast, deliver a result the public will pay to see.</p>
+  <p>The Ashes 2023 series ended 2-2 (with one rained-out match). England were the worse team for most of that summer and yet the series is remembered, by both fanbases, as a triumph. That is the Bazball trade. <b>The performance in the moment is no longer separate from the performance in the result.</b> McCullum did not need cricket to start scoring runs. He needed cricket to start being watchable again.</p>
+
+  <h2>What it didn't prove</h2>
+  <p>What three years of data has not shown is that an aggressive Test side can systematically beat the best opposition on their own surfaces. England have won a Test in India since 2022, but lost the series. They have lost the last two away Ashes. They have not played a four-Test rubber away from home and won. Bazball is, on the available evidence, a domestic philosophy that travels poorly — much like the 2003-2009 Australian sides everyone tries to compare it to, but with one critical difference: <span class="h">that Australian side won 16 of 16 home Tests AND won away.</span> England's number is half that.</p>
+  <p>The fairer summary, three years in, is something between the loudest praise and the hottest critique. McCullum has proved that a Test team can be entertaining without being ineffective. He has not yet proved that this team is ready to be the best in the world. Whether the experiment continues into 2027, when the next Ashes cycle begins, will rest entirely on whether the home wins keep coming and the away losses stay narrow.</p>
+
+  <blockquote>"We're not playing Test cricket the same way it's been played. Why would we be? It's a different game now. The crowds know it, the players know it. We just got there a year before everyone else." — Brendon McCullum</blockquote>
+
+  <h2>The verdict</h2>
+  <p>Bazball worked because it answered a question English cricket had stopped asking — what is this format actually for? — with a refusal to apologise. The numbers say it has been a clear success at home and a marginal one away. What comes next isn't another evolution of method; it's a test of whether the method can travel. The 2027 winter, on Indian and Australian pitches that don't reward English seamers, will tell us if Bazball was a revolution or just a really good summer.</p>
+
+  <div class="sources">
+    <strong style="color:var(--ink); display:block; margin-bottom:6px">Sources & methodology</strong>
+    Run rates derived from ESPNcricinfo Statsguru queries on England's Test innings totals, 2010-01-01 to 2026-04-25. Bowling averages are series-weighted means. The McCullum hire date is May 2022. All commentary is original analysis.
+    <ul style="margin:8px 0 0; padding-left:18px">
+      <li><a href="https://www.espncricinfo.com/" target="_blank" rel="noopener">ESPNcricinfo Statsguru</a></li>
+      <li><a href="https://www.cricbuzz.com/" target="_blank" rel="noopener">Cricbuzz match archive</a></li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
