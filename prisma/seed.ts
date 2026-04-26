@@ -96,8 +96,8 @@ const SOCIAL_POSTS: SeedSocial[] = [
     sport: "FOOTBALL",
     title: "On this day — Costa to Chelsea",
     tweetText: [
-      "On this day in 2014, Diego Costa joined Chelsea for £32m.\n\nHe scored on his debut. He scored 20 in his first season. He won the league.\n\nThe best transfer of the Premier League's last decade — and possibly the Premier League era. 👇",
-      "Three Premier League titles in his career. All three with Chelsea. All within five years.\n\nRetired at 35 with a Europa League and a La Liga on top of it.\n\nNo signing in modern football has returned more, for less, against a more terrified Premier League defence.",
+      "On this day in 2014, Diego Costa joined Chelsea for £32m.\nHe scored on his debut. 20 goals in his first season. Won the league.\nThe best transfer of the Premier League's last decade — possibly its entire era. 👇",
+      "Three Premier League titles in his career. All three with Chelsea, all within five years.\nRetired at 35 with a Europa League and a La Liga on top.\nNo signing in modern football has returned more, for less, against a more terrified Premier League defence.",
     ].join("\n\n"),
     publishedAt: new Date("2026-04-15T10:00:00Z"),
   },

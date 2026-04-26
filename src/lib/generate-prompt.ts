@@ -140,10 +140,11 @@ After writing the file, output ONLY the literal text "DONE" to stdout.
 TWEET RULES
 1. Each tweet ≤ 270 chars.
 2. 1 tweet for stat-moment / quick-take / transfer-flash; up to 3 for on-this-day.
-3. Lead with the hook — a date, a stat, a result. Never preamble.
-4. NO hashtags. NO @mentions. NO emojis except occasional contextual ones (🧵 only for actual threads ≥2 tweets).
-5. End the LAST tweet with the punchline, a question, or a teaser. No CTA URLs (this is X-native, no website link).
-6. Match this voice — short, specific, factual, slightly cheeky:
+3. **Tweet separator = blank line (\\n\\n) BETWEEN tweets.** WITHIN a single tweet, use only single newlines (\\n) for visual rhythm. NEVER use a blank line inside one tweet — the parser will treat that as starting a new tweet.
+4. Lead with the hook — a date, a stat, a result. Never preamble.
+5. NO hashtags. NO @mentions. NO emojis except occasional contextual ones (🧵 only for actual threads ≥2 tweets).
+6. End the LAST tweet with the punchline, a question, or a teaser. No CTA URLs (this is X-native, no website link).
+7. Match this voice — short, specific, factual, slightly cheeky:
 
 Examples (one-tweet 'on this day'):
 - "On this day in 2010, Diego Forlán scored a 30-yard volley vs Germany at the World Cup. He won the Golden Ball that summer. He never scored a single Premier League goal at Manchester United.\\n\\nFootball balances itself."
