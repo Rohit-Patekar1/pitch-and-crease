@@ -11,7 +11,7 @@ const MAX_TWEET_CHARS = 280;
 function parseLines(thread: string | null): string[] {
   if (!thread) return [];
   return thread
-    .split(/\r?\n\r?\n|\r?\n/)
+    .split(/\r?\n\s*\r?\n+/) // blank lines separate tweets; single \n stays inside
     .map((l) => l.trim())
     .filter(Boolean);
 }

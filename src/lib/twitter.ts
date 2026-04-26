@@ -89,16 +89,16 @@ function ensureUrlInThread(tweets: string[], url: string): string[] {
 }
 
 function parseThread(threadText: string, fallback: PostThreadInput): string[] {
-  const lines = threadText
-    .split(/\r?\n\r?\n|\r?\n/) // blank lines or newlines both split
-    .map((l) => l.trim())
+  // Tweets are separated by blank lines. Single newlines stay inside a tweet
+  // for visual rhythm (multi-line stat lists, line breaks, etc).
+  const tweets = threadText
+    .split(/\r?\n\s*\r?\n+/)
+    .map((t) => t.trim())
     .filter(Boolean);
-  if (lines.length === 0) return defaultThread(fallback);
-  // For analysis threads written in our editor, paragraphs separated by blank
-  // lines often represent ONE tweet. We'll be smart: if the result is too
-  // many tweets for sane volume (>10), we'll bail to default.
-  if (lines.length > 12) return defaultThread(fallback);
-  return ensureUrlInThread(lines.map(truncateForTweet), articleUrl(fallback));
+  if (tweets.length === 0) return defaultThread(fallback);
+  // Sanity check — runaway threads probably mean the writer used single newlines.
+  if (tweets.length > 18) return defaultThread(fallback);
+  return ensureUrlInThread(tweets.map(truncateForTweet), articleUrl(fallback));
 }
 
 /** Group images by slot for fast lookup. */

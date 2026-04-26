@@ -50,16 +50,39 @@ After writing the file, output ONLY the literal text "DONE" to stdout. No commen
 
 TWITTER THREAD
 ==============
-Write a 4-6 tweet thread in the editorial voice of The Athletic / Tifo Football, designed for X. One tweet per line in the JSON string (use "\\n" between tweets). Hard rules:
+Write a substantial 8-12 tweet thread in the editorial voice of The Athletic / Tifo Football / StatsBomb, designed to perform on X as a real tactical breakdown. NOT highlights or one-liner takeaways. Match the analytical density of the underlying article — every tweet should make a specific point with named players, exact minutes, and concrete numbers.
 
-1. Each tweet ≤ 270 characters (leave room for image previews — Twitter counts those).
-2. First tweet = the hook. Punchy. Often ends with "🧵👇" or "Here's how" to signal a thread.
-3. Middle tweets = the analytical beats. One specific idea per tweet. Use stats. Use named players. Avoid hedging language.
-4. Last tweet = soft CTA with the article URL. The URL will be appended automatically; do NOT include it in the body of any tweet.
-5. NO hashtags. NO @mentions. NO "DM me." Threads earn engagement on quality, not gimmicks.
-6. Match the tone of these examples — confident, specific, readable in 3 seconds:
-   "Atlético had 28.9% possession. Their xG was 1.71 to Barcelona's 2.28. None of that mattered. This is the entire Simeone project."
-   "Three Ferran Torres touches: one to lose Lenglet, one to set himself, one to bend it into the top corner. 24'. Aggregate 2-2. Tie alive."
+Format: one tweet per ELEMENT, separated by a blank line in the JSON string (use "\\n\\n" between tweets). Within a tweet, use single newlines for visual rhythm — most tweets should be 3-6 short lines.
+
+Hard rules:
+
+1. **Length**: 8-12 tweets total. Match-recap threads usually need 10-12. Tactical-theme threads can be 8.
+2. **Char limit**: each tweet ≤ 270 characters (Twitter's 280 minus margin for safety).
+3. **Tweet 1 = the HOOK.** Punchy. State the headline outcome + one stat that makes a reader stop scrolling. End with "🧵👇" or similar. Do NOT include the URL — auto-appended later.
+4. **Middle tweets = the BEATS.** One specific moment, stat, or argument per tweet. Use exact minutes ('4th minute'), named players, exact stats (not 'a lot' — '71.1%').
+5. **Use this approximate structure for match-recap threads:**
+   - Tweet 1: Hook + headline stat
+   - Tweet 2: Lineup / tactical setup context
+   - Tweet 3-4: Goals / key moments with minute markers
+   - Tweet 5-7: The pivot — the decisive moment or run, broken into 2-3 tweets so each phase gets its own beat
+   - Tweet 8: How the result was managed (low block / second half adjustment)
+   - Tweet 9: The numbers panel (possession, shots, xG, key stat)
+   - Tweet 10: A pattern, history, or comparison (e.g., 'second consecutive tie decided by X')
+   - Tweet 11: The thesis — what this game tells us about the broader project
+   - Tweet 12: CTA tweet (will get URL appended)
+6. **For tactical / on-this-day / player threads**, replace the goal-by-goal beats with theme-by-theme beats but keep the same density.
+7. **Last tweet = soft CTA**. End with "Full breakdown 👇" or similar. URL is auto-appended.
+8. **Voice**: confident, specific, never hedging. NO hashtags. NO @mentions. NO emojis except 🧵👇 and similar in tweets 1 and the last. Use stat formatting like:
+   ```
+   Final stats:
+   - Possession: Barca 71.1%, Atléti 28.9%
+   - xG: 2.28 vs 1.71
+   - Shots on target: 8 vs 5
+   ```
+9. **Examples of correct tweet density:**
+   - "4th minute. Yamal strips Lenglet on the touchline — under almost no pressure — and rolls a finish through Musso's legs. Lenglet looked like he had the situation. He didn't. 1-0 Barcelona. 2-1 on aggregate."
+   - "From 32' onwards, Atlético played the football their fans have a name for: el partido del Cholo. Two banks of four, ten yards apart. The front two pinning Barcelona's centre-backs. Pedri controlled the ball but every progressive pass had to thread through six bodies."
+   - "That gap — between dominance and outcome — is the entire Simeone project. A back-six block on lost ball. Two strikers who never abandon the touchline. One runner — Llorente — given license to detonate. The rest refuses to leak."
 
 TWITTER IMAGE MAP
 =================
@@ -70,12 +93,14 @@ For each tweet that benefits from a visual, add an entry to twitterImageMap with
 - svgIndex: which SVG to attach
 - alt: short descriptive text for accessibility (max 220 chars)
 
-A typical match-analysis thread has images at:
-- tweet 0: the hero/score card or stat strip (svgIndex 0)
-- tweet 1 or 2: the formation diagram (svgIndex 1)
-- tweet 3 or 4: the goal-sequence pitch or shot map (svgIndex 2 or 3)
+A typical 10-12 tweet match-analysis thread should have 3-5 images, distributed roughly:
+- tweet 1 or 2 (lineup context): the formation diagram
+- tweet 3 or 4 (key moment): xG flow chart or first-goal context
+- tweet 5-7 (the decisive moment): the goal-sequence pitch / build-up
+- tweet 8 or 9 (low block / stats): the shot map or possession bar
+- final tweet (CTA): no image OR a stat-strip-style hero card
 
-You don't need an image on every tweet. Pick the 2-4 most useful.
+You don't need an image on every tweet — text-only "argument" tweets between visual ones create rhythm. Aim for an image roughly every 2-3 tweets at most.
 
 BODY CONTENT REQUIREMENTS
 =========================
