@@ -1,234 +1,199 @@
 /**
  * scripts/generate.ts
  *
- * Generates an article using Claude Code on your Max subscription
- * (no API credits needed). Spawns the `claude` CLI as a subprocess,
- * has it write the article JSON to a file, then loads it into Postgres
- * as a DRAFT for you to review in the admin dashboard.
+ * Direct one-shot generator (no queue). Spawns Claude Code with your Max
+ * subscription and creates either an Article or a SocialPost as a DRAFT.
  *
  * Usage:
- *   npm run generate -- --slot=on-this-day
- *   npm run generate -- --slot=recent-match
- *   npm run generate -- --slot=custom --custom="Tactical look at De Zerbi at Marseille this season"
- *   npm run generate -- --daily        # runs all 5 slots back-to-back
- *
- * Prerequisites:
- *   - Claude Code CLI installed and logged in (`claude /login`)
- *   - DATABASE_URL set in .env (Railway Postgres or local)
+ *   npm run generate -- --type=article --slot=on-this-day
+ *   npm run generate -- --type=social --slot=on-this-day
+ *   npm run generate -- --type=article --slot=custom --custom="your prompt"
+ *   npm run generate -- --daily        # one of each across all slots
  */
 import { spawn } from "node:child_process";
-import { writeFileSync, readFileSync, unlinkSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, unlinkSync, existsSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PrismaClient, Sport, Status } from "@prisma/client";
-import { buildPrompt, type Slot } from "../src/lib/generate-prompt";
+import { PrismaClient, type Sport, type SocialType } from "@prisma/client";
+import {
+  buildArticlePrompt,
+  buildSocialPrompt,
+  type ArticleSlot,
+  type SocialSlot,
+} from "../src/lib/generate-prompt";
 import { renderSvgsFromHtml } from "../src/lib/render-svg";
 
 const prisma = new PrismaClient();
 
-const SLOTS: Slot[] = ["on-this-day", "recent-match", "transfer", "tactics", "player"];
+const ARTICLE_SLOTS: ArticleSlot[] = ["on-this-day", "recent-match", "transfer", "tactics", "player"];
+const SOCIAL_SLOTS: SocialSlot[] = ["on-this-day", "stat-moment", "quick-take", "transfer-flash"];
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const slot = args.find((a) => a.startsWith("--slot="))?.split("=")[1] as Slot | undefined;
+  const type = (args.find((a) => a.startsWith("--type="))?.split("=")[1] ?? "article") as
+    | "article"
+    | "social";
+  const slot = args.find((a) => a.startsWith("--slot="))?.split("=")[1];
   const custom = args.find((a) => a.startsWith("--custom="))?.split("=")[1];
   const daily = args.includes("--daily");
-  return { slot, custom, daily };
+  return { type, slot, custom, daily };
 }
 
-function runClaude(prompt: string, articlePath: string): Promise<void> {
+function runClaude(prompt: string, outPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    console.log(`[generate] invoking Claude CLI (this may take 60-180 seconds)...`);
-    const proc = spawn("claude", ["-p", prompt], {
-      stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env },
-    });
-    let stdout = "";
+    console.log(`[generate] invoking Claude CLI...`);
+    const proc = spawn("claude", ["-p", prompt], { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env } });
     let stderr = "";
-    proc.stdout.on("data", (d) => {
-      const chunk = d.toString();
-      stdout += chunk;
-      // Stream a heartbeat
-      process.stdout.write(".");
-    });
+    proc.stdout.on("data", () => process.stdout.write("."));
     proc.stderr.on("data", (d) => (stderr += d.toString()));
     proc.on("close", (code) => {
       process.stdout.write("\n");
-      if (code === 0) {
-        if (existsSync(articlePath)) {
-          resolve();
-        } else {
-          reject(
-            new Error(
-              `Claude exited 0 but did not write ${articlePath}.\n` +
-                `Last 500 chars of stdout:\n${stdout.slice(-500)}`,
-            ),
-          );
-        }
-      } else {
-        reject(new Error(`claude exited ${code}.\nstderr:\n${stderr.slice(-500)}`));
-      }
+      if (code === 0 && existsSync(outPath)) resolve();
+      else reject(new Error(`claude exited ${code}; stderr: ${stderr.slice(-300)}`));
     });
-    proc.on("error", (err) => {
-      reject(
-        new Error(
-          `Failed to spawn 'claude' CLI: ${err.message}\n\n` +
-            `Make sure Claude Code is installed and logged in:\n` +
-            `  curl -fsSL https://claude.ai/install.sh | bash\n` +
-            `  claude /login`,
-        ),
-      );
-    });
+    proc.on("error", reject);
   });
 }
 
-interface ParsedArticle {
-  sport: Sport;
-  title: string;
-  slug: string;
-  dek: string;
-  body: string;
-  twitterThread?: string;
-  twitterImageMap?: Array<{ tweetIndex: number; svgIndex: number; alt?: string }>;
+function extractJson<T = unknown>(raw: string): T {
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  return JSON.parse(cleaned) as T;
 }
 
-function extractArticleJson(raw: string): ParsedArticle {
-  // Strip code fences if Claude added them
-  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-  const obj = JSON.parse(cleaned);
-  const required = ["sport", "title", "slug", "dek", "body"];
-  for (const k of required) {
-    if (!obj[k] || typeof obj[k] !== "string") {
-      throw new Error(`generated JSON missing or invalid field: ${k}`);
-    }
+async function generateArticle(slot: ArticleSlot, custom?: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const tmpDir = join(tmpdir(), "pc-articles");
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+  const out = join(tmpDir, `article-${Date.now()}.json`);
+
+  const prompt =
+    slot === "custom"
+      ? buildArticlePrompt("custom", custom!, today, out)
+      : buildArticlePrompt(slot, undefined, today, out);
+  await runClaude(prompt, out);
+  const a = extractJson<{
+    sport: Sport;
+    title: string;
+    slug: string;
+    dek: string;
+    body: string;
+    promoTweet?: string;
+    promoImageSvgIndex?: number;
+  }>(readFileSync(out, "utf-8"));
+
+  for (const k of ["title", "slug", "dek", "body"] as const) {
+    if (!a[k] || typeof a[k] !== "string") throw new Error(`missing field: ${k}`);
   }
-  // Normalize sport
-  obj.sport = String(obj.sport).toUpperCase() as Sport;
-  if (obj.sport !== "FOOTBALL" && obj.sport !== "CRICKET") {
-    obj.sport = "FOOTBALL";
-  }
-  // Slugify defensively
-  obj.slug = obj.slug
+  a.sport = String(a.sport ?? "FOOTBALL").toUpperCase() as Sport;
+  if (a.sport !== "FOOTBALL" && a.sport !== "CRICKET") a.sport = "FOOTBALL";
+  let slug = String(a.slug)
     .toLowerCase()
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 100);
-  return obj as ParsedArticle;
-}
-
-/** Build the tweetImages array from rendered SVGs + Claude's twitterImageMap. */
-function buildTweetImages(
-  body: string,
-  imageMap: ParsedArticle["twitterImageMap"],
-): Array<{ slot: number; alt: string; base64: string }> {
-  if (!imageMap || imageMap.length === 0) return [];
-  const rendered = renderSvgsFromHtml(body);
-  const out: Array<{ slot: number; alt: string; base64: string }> = [];
-  for (const m of imageMap) {
-    const png = rendered.find((r) => r.index === m.svgIndex);
-    if (!png) {
-      console.warn(`[generate] no rendered svg at index ${m.svgIndex} for tweet ${m.tweetIndex}`);
-      continue;
-    }
-    out.push({
-      slot: m.tweetIndex,
-      alt: m.alt ?? png.alt,
-      base64: png.base64,
-    });
-  }
-  return out;
-}
-
-async function generate(slot: Slot, custom?: string): Promise<void> {
-  const today = new Date().toISOString().slice(0, 10);
-  const tmpDir = join(tmpdir(), "pc-articles");
-  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
-  const articlePath = join(tmpDir, `article-${Date.now()}.json`);
-
-  const prompt = buildPrompt(slot, custom, today, articlePath);
-
-  console.log(`[generate] slot=${slot}${custom ? ` custom="${custom.slice(0, 60)}..."` : ""}`);
-  console.log(`[generate] target file: ${articlePath}`);
-
-  await runClaude(prompt, articlePath);
-
-  const raw = readFileSync(articlePath, "utf-8");
-  const article = extractArticleJson(raw);
-
-  // De-duplicate slugs by appending a date suffix on collision
-  let slug = article.slug;
   const existing = await prisma.article.findUnique({ where: { slug } });
-  if (existing) {
-    slug = `${slug}-${today}`;
-    console.log(`[generate] slug collision, using: ${slug}`);
-  }
+  if (existing) slug = `${slug}-${today}`;
 
-  const tweetImages = buildTweetImages(article.body, article.twitterImageMap);
-  console.log(`[generate] rendered ${tweetImages.length} thread images`);
+  const rendered = renderSvgsFromHtml(a.body);
+  const idx = a.promoImageSvgIndex ?? 0;
+  const heroSvg = rendered.find((r) => r.index === idx) ?? rendered[0];
+  const promoImage = heroSvg ? { alt: heroSvg.alt, base64: heroSvg.base64 } : null;
 
   const created = await prisma.article.create({
     data: {
       slug,
-      sport: article.sport,
-      title: article.title,
-      dek: article.dek,
-      body: article.body,
-      twitterThread: article.twitterThread ?? null,
-      tweetImages: tweetImages.length > 0 ? (tweetImages as object) : undefined,
+      sport: a.sport,
+      title: a.title,
+      dek: a.dek,
+      body: a.body,
+      promoTweet: a.promoTweet ?? null,
+      promoImage: (promoImage as object) ?? undefined,
       status: "DRAFT",
       source: slot,
       promptSeed: (custom ?? slot).slice(0, 500),
     },
   });
+  try { unlinkSync(out); } catch { /* ignore */ }
+  console.log(`[generate] ✓ article ${created.id} — ${created.title}`);
+}
 
-  // Cleanup temp file
-  try {
-    unlinkSync(articlePath);
-  } catch {
-    /* ignore */
-  }
+async function generateSocial(slot: SocialSlot, custom?: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const tmpDir = join(tmpdir(), "pc-social");
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+  const out = join(tmpDir, `social-${Date.now()}.json`);
 
-  console.log(`[generate] ✓ created DRAFT ${created.id}`);
-  console.log(`[generate]    title: ${created.title}`);
-  console.log(`[generate]    review at: /admin → article ${created.id}`);
+  const prompt =
+    slot === "custom"
+      ? buildSocialPrompt("custom", custom!, today, out)
+      : buildSocialPrompt(slot, undefined, today, out);
+  await runClaude(prompt, out);
+  const s = extractJson<{
+    sport: Sport;
+    type: SocialType;
+    title: string;
+    tweetText: string;
+  }>(readFileSync(out, "utf-8"));
+
+  if (!s.tweetText || !s.title) throw new Error("missing required fields");
+  s.sport = String(s.sport ?? "FOOTBALL").toUpperCase() as Sport;
+  if (s.sport !== "FOOTBALL" && s.sport !== "CRICKET") s.sport = "FOOTBALL";
+  const validTypes = ["ON_THIS_DAY", "STAT_MOMENT", "QUICK_TAKE", "TRANSFER_FLASH", "OTHER"] as const;
+  const type = (validTypes as readonly string[]).includes(s.type) ? s.type : "OTHER";
+
+  const created = await prisma.socialPost.create({
+    data: {
+      sport: s.sport,
+      type: type as SocialType,
+      title: s.title,
+      tweetText: s.tweetText,
+      status: "DRAFT",
+      source: slot,
+      promptSeed: (custom ?? slot).slice(0, 500),
+    },
+  });
+  try { unlinkSync(out); } catch { /* ignore */ }
+  console.log(`[generate] ✓ social ${created.id} — ${created.title}`);
 }
 
 async function main() {
-  const { slot, custom, daily } = parseArgs();
+  const { type, slot, custom, daily } = parseArgs();
 
   if (daily) {
-    console.log(`[generate] daily mode: running ${SLOTS.length} slots`);
-    for (const s of SLOTS) {
-      try {
-        await generate(s);
-      } catch (err) {
-        console.error(`[generate] slot=${s} FAILED:`, err);
-      }
+    for (const s of ARTICLE_SLOTS) {
+      try { await generateArticle(s); }
+      catch (e) { console.error(`[generate] article ${s} failed:`, e); }
     }
-  } else if (slot === "custom") {
-    if (!custom) {
-      console.error("--custom='your prompt' is required when --slot=custom");
+    for (const s of SOCIAL_SLOTS) {
+      try { await generateSocial(s); }
+      catch (e) { console.error(`[generate] social ${s} failed:`, e); }
+    }
+    return;
+  }
+
+  if (!slot) {
+    console.error("Usage: --type=article|social --slot=<slot>  or  --daily");
+    process.exit(1);
+  }
+
+  if (type === "article") {
+    if (slot === "custom" && !custom) {
+      console.error("--custom='prompt' required for custom article slot");
       process.exit(1);
     }
-    await generate("custom", custom);
-  } else if (slot && SLOTS.includes(slot)) {
-    await generate(slot);
+    await generateArticle(slot as ArticleSlot, custom);
+  } else if (type === "social") {
+    if (slot === "custom" && !custom) {
+      console.error("--custom='prompt' required for custom social slot");
+      process.exit(1);
+    }
+    await generateSocial(slot as SocialSlot, custom);
   } else {
-    console.error(
-      `Usage:
-  npm run generate -- --slot=<slot>
-  npm run generate -- --slot=custom --custom="your prompt"
-  npm run generate -- --daily
-
-Slots: ${SLOTS.join(", ")}, custom`,
-    );
+    console.error("--type must be 'article' or 'social'");
     process.exit(1);
   }
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
+  .catch((e) => { console.error(e); process.exit(1); })
   .finally(() => prisma.$disconnect());

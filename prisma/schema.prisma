@@ -10,6 +10,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Long-form article that lives on the website. When we share it on X, we post
+/// ONE promotional tweet (hook + image + article URL), not a thread.
 model Article {
   id            String    @id @default(cuid())
   slug          String    @unique
@@ -20,20 +22,18 @@ model Article {
   status        Status    @default(DRAFT)
   scheduledFor  DateTime?
   publishedAt   DateTime?
-  // Social copies — generation script fills these
-  twitterThread String?   @db.Text       // newline-separated tweets
+  // Social promotional copy
+  promoTweet    String?   @db.Text       // single tweet (max ~250 chars, URL appended automatically)
+  promoImage    Json?                    // single image: { alt: string, base64: string }
   facebookCopy  String?   @db.Text
-  // Posted-to-social tracking
-  tweetIds      String?   @db.Text       // comma-separated tweet IDs after posting
+  // Posted-to-X tracking
+  tweetIds      String?   @db.Text
   tweetedAt     DateTime?
-  // Pre-rendered images for thread (base64 PNG strings)
-  // shape: [{ slot: number, alt: string, base64: string }]
-  tweetImages   Json?
   // Generation metadata
-  promptSeed    String?   @db.Text       // the prompt that produced it (for re-runs / audit)
-  source        String?                  // "auto-daily" | "manual" | "on-this-day" | etc.
+  promptSeed    String?   @db.Text
+  source        String?
   // SEO
-  metaImage     String?                  // path/URL to hero card PNG
+  metaImage     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -41,20 +41,65 @@ model Article {
   @@index([publishedAt])
 }
 
+/// Twitter-native short content. No website article behind it — lives only on X.
+/// Used for "On This Day", quick stat blasts, in-the-moment reactions.
+model SocialPost {
+  id            String       @id @default(cuid())
+  type          SocialType   @default(ON_THIS_DAY)
+  sport         Sport
+  status        Status       @default(DRAFT)
+  /// Internal name so you can find it in the queue (NOT shown on X)
+  title         String
+  /// 1-3 tweets, separated by blank lines. Same parsing as Article promos.
+  tweetText     String       @db.Text
+  /// Optional images: [{ slot: number, alt: string, base64: string }]
+  /// slot is the tweet index this image attaches to (0 = first tweet)
+  tweetImages   Json?
+  // Posted-to-X tracking
+  tweetIds      String?      @db.Text
+  tweetedAt     DateTime?
+  scheduledFor  DateTime?
+  publishedAt   DateTime?
+  // Generation metadata
+  promptSeed    String?      @db.Text
+  source        String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([sport, status])
+  @@index([publishedAt])
+}
+
+enum SocialType {
+  ON_THIS_DAY
+  STAT_MOMENT
+  QUICK_TAKE
+  TRANSFER_FLASH
+  OTHER
+}
+
 /// A user-submitted prompt waiting for the local Claude Code poller to pick it up.
 /// Created by POST /api/generate-request from the admin dashboard.
 /// Processed by `npm run process:queue` running on the user's laptop.
 model GenerationRequest {
-  id            String    @id @default(cuid())
-  prompt        String    @db.Text
-  slot          String    @default("custom")  // "custom" | "on-this-day" | "recent-match" | etc.
-  status        ReqStatus @default(PENDING)
-  articleId     String?                       // set when generation succeeds
-  errorMessage  String?   @db.Text            // set when generation fails
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id            String       @id @default(cuid())
+  /// Whether this request should produce a long-form Article or a Twitter-native SocialPost.
+  contentType   ContentType  @default(ARTICLE)
+  prompt        String       @db.Text
+  slot          String       @default("custom")
+  status        ReqStatus    @default(PENDING)
+  articleId     String?                       // set when an Article is created
+  socialPostId  String?                       // set when a SocialPost is created
+  errorMessage  String?      @db.Text
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([status, createdAt])
+}
+
+enum ContentType {
+  ARTICLE
+  SOCIAL
 }
 
 enum ReqStatus {

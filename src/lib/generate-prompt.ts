@@ -1,12 +1,10 @@
 /**
- * The article generation guide. Reused by scripts/generate.ts to instruct
- * Claude (via the Claude Code CLI on your Max subscription).
- *
- * Each slot has a brief — what to write about. The shared template has the
- * structural and stylistic requirements that every article must follow.
+ * Prompt builders for the two generation modes:
+ *  - article: full long-form piece on the website + ONE promotional tweet
+ *  - social:  Twitter-native short post (no website article)
  */
 
-export type Slot =
+export type ArticleSlot =
   | "on-this-day"
   | "recent-match"
   | "transfer"
@@ -14,103 +12,59 @@ export type Slot =
   | "player"
   | "custom";
 
-export const SLOT_BRIEFS: Record<Exclude<Slot, "custom">, string> = {
-  "on-this-day": `Find ONE notable football event that happened on this date in history (any year). It can be a famous match, a player's birthday, a record set, or a historic transfer. Pick something with rich tactical or narrative material — avoid trivia. Write about it as if it just happened: with present-tense urgency in the analysis.`,
+export type SocialSlot =
+  | "on-this-day"
+  | "stat-moment"
+  | "quick-take"
+  | "transfer-flash"
+  | "custom";
 
-  "recent-match": `Find ONE notable football match that concluded in the last 48 hours, ideally from a top-5 European league or a Champions League / Europa League knockout stage. Use web search to confirm the result, lineups, scorers, and key stats. Write a tactical analysis — formations, the decisive moments, xG and possession, standout performers, what it means for both teams.`,
+// ---------- ARTICLE ----------
 
-  "transfer": `Find ONE significant football transfer story from the last 7 days affecting a top-20 European club. Use web search to confirm. Write an analytical piece: the player, the tactical fit, the price vs market value, the implications for both clubs. Avoid pure rumour — only use stories with multiple credible sources.`,
-
-  "tactics": `Pick ONE tactical theme being actively discussed in football right now (a coach's innovation, a recurring system, a defensive trend, an evolving role). Use web search to verify it's current. Write a deep-dive with concrete examples — at least two clubs/players exemplifying the theme.`,
-
-  "player": `Pick ONE in-form football player from a top-5 European league. Use web search for current stats. Write a profile covering their season, role, tactical strengths, statistical edges, and what makes them unique.`,
+export const ARTICLE_SLOT_BRIEFS: Record<Exclude<ArticleSlot, "custom">, string> = {
+  "on-this-day": `Find ONE notable football event that happened on this date in history. Pick something with rich tactical or narrative material. Write about it as if it just happened.`,
+  "recent-match": `Find ONE notable football match that concluded in the last 48 hours from a top-5 European league or UCL/UEL knockout. Use web search for the result, lineups, scorers, and key stats. Write a tactical analysis.`,
+  "transfer": `Find ONE significant transfer story from the last 7 days affecting a top-20 European club. Write an analytical piece on the player, fit, price, and implications.`,
+  "tactics": `Pick ONE tactical theme being actively discussed in football right now. Write a deep-dive with concrete examples — at least two clubs/players exemplifying it.`,
+  "player": `Pick ONE in-form player from a top-5 European league. Write a profile covering season, role, tactical strengths, statistical edges.`,
 };
 
-export const ARTICLE_GUIDE = `
+const ARTICLE_GUIDE = `
 You are writing for "Pitch and Crease," a daily tactical analysis publication. Match the editorial tone of The Athletic, Tifo Football, and StatsBomb — analytical, decisive, original, never aggregated.
 
-REQUIRED OUTPUT FORMAT
-======================
-Write the result as a single JSON object to the file path provided in the user message. The JSON object has these fields:
+REQUIRED OUTPUT — single JSON object written to the file path provided:
 
 {
-  "sport": "FOOTBALL",            // always FOOTBALL for now
-  "title": string,                // punchy editorial title, max 90 chars
-  "slug": string,                 // kebab-case-slug-of-title, ASCII only
+  "sport": "FOOTBALL",
+  "title": string,                // editorial title, max 90 chars
+  "slug": string,                 // kebab-case, ASCII only
   "dek": string,                  // single-sentence subheadline, 80-200 chars
-  "body": string,                 // the full HTML body, see below
-  "twitterThread": string,        // 4-6 tweet thread, ONE TWEET PER LINE, see "TWITTER THREAD" below
-  "twitterImageMap": [            // which article SVG attaches to which tweet slot
-    { "tweetIndex": 0, "svgIndex": 0, "alt": "Match score card" },
-    { "tweetIndex": 1, "svgIndex": 1, "alt": "Formation diagram" }
-  ]
+  "body": string,                 // full HTML body (see structure below)
+  "promoTweet": string,           // SINGLE tweet (max 220 chars; URL appended automatically)
+  "promoImageSvgIndex": number    // 0-based index of which body <svg> to render as the promo image (typically 0 — the formation diagram or hero stat card)
 }
 
-After writing the file, output ONLY the literal text "DONE" to stdout. No commentary, no preamble.
+After writing the file, output ONLY the literal text "DONE" to stdout.
 
-TWITTER THREAD
-==============
-Write a substantial 8-12 tweet thread in the editorial voice of The Athletic / Tifo Football / StatsBomb, designed to perform on X as a real tactical breakdown. NOT highlights or one-liner takeaways. Match the analytical density of the underlying article — every tweet should make a specific point with named players, exact minutes, and concrete numbers.
-
-Format: one tweet per ELEMENT, separated by a blank line in the JSON string (use "\\n\\n" between tweets). Within a tweet, use single newlines for visual rhythm — most tweets should be 3-6 short lines.
-
-Hard rules:
-
-1. **Length**: 8-12 tweets total. Match-recap threads usually need 10-12. Tactical-theme threads can be 8.
-2. **Char limit**: each tweet ≤ 270 characters (Twitter's 280 minus margin for safety).
-3. **Tweet 1 = the HOOK.** Punchy. State the headline outcome + one stat that makes a reader stop scrolling. End with "🧵👇" or similar. Do NOT include the URL — auto-appended later.
-4. **Middle tweets = the BEATS.** One specific moment, stat, or argument per tweet. Use exact minutes ('4th minute'), named players, exact stats (not 'a lot' — '71.1%').
-5. **Use this approximate structure for match-recap threads:**
-   - Tweet 1: Hook + headline stat
-   - Tweet 2: Lineup / tactical setup context
-   - Tweet 3-4: Goals / key moments with minute markers
-   - Tweet 5-7: The pivot — the decisive moment or run, broken into 2-3 tweets so each phase gets its own beat
-   - Tweet 8: How the result was managed (low block / second half adjustment)
-   - Tweet 9: The numbers panel (possession, shots, xG, key stat)
-   - Tweet 10: A pattern, history, or comparison (e.g., 'second consecutive tie decided by X')
-   - Tweet 11: The thesis — what this game tells us about the broader project
-   - Tweet 12: CTA tweet (will get URL appended)
-6. **For tactical / on-this-day / player threads**, replace the goal-by-goal beats with theme-by-theme beats but keep the same density.
-7. **Last tweet = soft CTA**. End with "Full breakdown 👇" or similar. URL is auto-appended.
-8. **Voice**: confident, specific, never hedging. NO hashtags. NO @mentions. NO emojis except 🧵👇 and similar in tweets 1 and the last. Use stat formatting like:
-   ```
-   Final stats:
-   - Possession: Barca 71.1%, Atléti 28.9%
-   - xG: 2.28 vs 1.71
-   - Shots on target: 8 vs 5
-   ```
-9. **Examples of correct tweet density:**
-   - "4th minute. Yamal strips Lenglet on the touchline — under almost no pressure — and rolls a finish through Musso's legs. Lenglet looked like he had the situation. He didn't. 1-0 Barcelona. 2-1 on aggregate."
-   - "From 32' onwards, Atlético played the football their fans have a name for: el partido del Cholo. Two banks of four, ten yards apart. The front two pinning Barcelona's centre-backs. Pedri controlled the ball but every progressive pass had to thread through six bodies."
-   - "That gap — between dominance and outcome — is the entire Simeone project. A back-six block on lost ball. Two strikers who never abandon the touchline. One runner — Llorente — given license to detonate. The rest refuses to leak."
-
-TWITTER IMAGE MAP
+PROMOTIONAL TWEET
 =================
-Every SVG in the body has a 0-based index based on source order. The first <svg> in the body is svgIndex 0, the next is 1, and so on.
+ONE tweet, 180-220 chars max. Goal: hook the reader, deliver one striking stat or contradiction, and make them want to click through to read the full piece. The article URL gets appended automatically — do NOT include any URL in the tweet text.
 
-For each tweet that benefits from a visual, add an entry to twitterImageMap with:
-- tweetIndex: 0-based index of the tweet in twitterThread
-- svgIndex: which SVG to attach
-- alt: short descriptive text for accessibility (max 220 chars)
+Good examples:
+- "Atlético Madrid 1-2 Barcelona. Aggregate 3-2.\\nThey had 28.9% of the ball. They took one chance worth its xG.\\nHow Diego Simeone strangled the comeback — and why this is the entire Atlético project."
+- "Bazball, three years in.\\nEngland's Test run rate: 4.74 — the highest sustained tempo any side has produced.\\nW-L: 22-13.\\nDid the experiment actually work? The data says yes, no, and it depends."
 
-A typical 10-12 tweet match-analysis thread should have 3-5 images, distributed roughly:
-- tweet 1 or 2 (lineup context): the formation diagram
-- tweet 3 or 4 (key moment): xG flow chart or first-goal context
-- tweet 5-7 (the decisive moment): the goal-sequence pitch / build-up
-- tweet 8 or 9 (low block / stats): the shot map or possession bar
-- final tweet (CTA): no image OR a stat-strip-style hero card
+Rules:
+1. NO hashtags. NO @mentions. NO emojis except occasionally 🧵 or 👇 if it earns its place.
+2. Lead with a stat, a result, or a contradiction. Never lead with "In this piece" or "I argue."
+3. End with a question, a thesis, or a teaser line that makes clicking inevitable.
+4. ONE single tweet. NOT a thread. Don't separate into multiple lines with blank-line breaks.
 
-You don't need an image on every tweet — text-only "argument" tweets between visual ones create rhythm. Aim for an image roughly every 2-3 tweets at most.
+BODY CONTENT
+============
+1100-1600 words of original analysis. Single <style> block scoped to .article-body. All inside one <div class="article-body">.
 
-BODY CONTENT REQUIREMENTS
-=========================
-Word count: 1100-1600 words of original analysis prose.
-
-The body must START with a single <style> block and contain only one <div class="article-body">…</div>. Do NOT include <html>, <head>, or <body> tags. Everything must be inside the article-body div.
-
-The <style> block must define ALL CSS selectors scoped to .article-body (e.g. ".article-body h1", ".article-body .stat-card"). Never use bare ":root", "body", or generic element selectors that would leak.
-
-Color theme — use these CSS variables on .article-body:
+Color theme — set these CSS variables on .article-body:
   --bg: #0b0e14;
   --panel: #131822;
   --panel-2: #1a2030;
@@ -120,52 +74,36 @@ Color theme — use these CSS variables on .article-body:
   --gold: #f7c948;
   --primary: <choose a team color, e.g. #cb3524>;
 
-REQUIRED STRUCTURAL ELEMENTS (in order)
-=======================================
-1. A KICKER (small uppercase label) — e.g. "UEFA Champions League · Quarter-final"
-2. An H1 TITLE (use the title from the JSON)
-3. A DEK paragraph (use the dek)
-4. A META row with date and venue (and scoreline if a match)
-5. For match articles: a SCORE CARD with both crests, score, scorers
-6. A KINETIC STAT STRIP — 4 cards with big numbers and labels
-7. AT LEAST 3 SECTIONS with H2 headings, each 2-4 paragraphs of analysis
-8. AT LEAST 3 ORIGINAL SVG VISUALS (you'll attach 2-4 of them to tweets via twitterImageMap) — pick from:
-   - Formation diagram (pitch with player positions)
-   - Tactical pitch showing a key moment with arrows
-   - xG flow chart (cumulative line chart over 90 minutes)
-   - Shot map (pitch with dots sized by xG)
-   - Possession bar
-   - Player rating cards (jersey number, name, stat, rating)
-9. A CLOSING "What it means" or "Verdict" section
-10. A SOURCES section at the bottom listing the URLs used (as a <ul>)
+REQUIRED STRUCTURE:
+1. KICKER (small uppercase label)
+2. H1 TITLE
+3. DEK paragraph
+4. META row with date and venue
+5. For matches: a SCORE CARD with crests/score/scorers
+6. KINETIC STAT STRIP (4 cards with big numbers)
+7. AT LEAST 3 SECTIONS with H2 headings, 2-4 paragraphs each
+8. AT LEAST 2 ORIGINAL SVG VISUALS — formation diagram, tactical pitch, xG flow, shot map, possession bar, player ratings
+9. CLOSING "What it means" / "Verdict" section
+10. SOURCES section as <ul> with full URLs
 
 SVG TIPS
-========
-- Pitch viewBox: "0 0 760 480" with a dark green background pattern.
-- Use stroke="rgba(255,255,255,0.55)" stroke-width="2" for pitch lines.
-- Always include xmlns="http://www.w3.org/2000/svg" on the <svg> element.
-- ALWAYS include <defs> within the SVG for any gradients or patterns you reference (defs scope per-SVG).
-- Animate paths with stroke-dasharray + dashoffset where it adds something.
+- viewBox like "0 0 760 480" with dark green pitch backgrounds
+- Always include xmlns="http://www.w3.org/2000/svg" and any <defs> the SVG references
+- Stroke="rgba(255,255,255,0.55)" stroke-width="2" for pitch lines
 
-QUALITY BAR
-===========
-- Original analysis, not summary. The reader should learn something.
-- Cite real, verifiable facts only. If you can't verify, don't include.
-- Use web search liberally to confirm details before writing.
-- Tone: confident, decisive, written for someone who already loves football.
-- No filler, no hedging, no "in conclusion".
-- Sources section at end with full URLs.
-
-SAVE AND EXIT
-=============
-Write the JSON to the path given in the user message, then print DONE.
+Cite real, verifiable facts only. Use web search to confirm before writing. Tone: confident, decisive, no hedging.
 `;
 
-export function buildPrompt(slot: Slot, customBrief: string | undefined, today: string, articlePath: string): string {
-  const brief = slot === "custom" ? customBrief! : SLOT_BRIEFS[slot];
+export function buildArticlePrompt(
+  slot: ArticleSlot,
+  customBrief: string | undefined,
+  today: string,
+  articlePath: string,
+): string {
+  const brief = slot === "custom" ? customBrief! : ARTICLE_SLOT_BRIEFS[slot];
   return `Today is ${today}.
 
-Slot: ${slot}
+Slot: article · ${slot}
 
 Brief:
 ${brief}
@@ -173,4 +111,68 @@ ${brief}
 Write the article JSON to this file path: ${articlePath}
 
 ${ARTICLE_GUIDE}`;
+}
+
+// ---------- SOCIAL ----------
+
+export const SOCIAL_SLOT_BRIEFS: Record<Exclude<SocialSlot, "custom">, string> = {
+  "on-this-day": `Find ONE notable football event from this date in history. Write a 1-3 tweet "On this day" social post.`,
+  "stat-moment": `Pick ONE striking football statistic that's been talked about this week. Write a 1-2 tweet share with the stat front-and-center.`,
+  "quick-take": `Pick ONE thing happening in football right now and write a 1-2 tweet take that lands a clear opinion.`,
+  "transfer-flash": `Find ONE breaking transfer story from the last 24 hours. Write a 1-2 tweet flash with the key details.`,
+};
+
+const SOCIAL_GUIDE = `
+You are writing for "Pitch and Crease" — a Twitter-native short football post. NO website article behind it. The whole post lives on X.
+
+REQUIRED OUTPUT — single JSON object written to the file path provided:
+
+{
+  "sport": "FOOTBALL",
+  "type": "ON_THIS_DAY" | "STAT_MOMENT" | "QUICK_TAKE" | "TRANSFER_FLASH" | "OTHER",
+  "title": string,                  // INTERNAL admin name (NOT shown on X), max 80 chars
+  "tweetText": string,              // 1-3 tweets separated by BLANK LINES (\\n\\n between tweets)
+  "imageHint": string | null        // optional 1-line description if a visual would help (e.g. "wagon-wheel showing Lara's 400 shot zones")
+}
+
+After writing the file, output ONLY the literal text "DONE" to stdout.
+
+TWEET RULES
+1. Each tweet ≤ 270 chars.
+2. 1 tweet for stat-moment / quick-take / transfer-flash; up to 3 for on-this-day.
+3. Lead with the hook — a date, a stat, a result. Never preamble.
+4. NO hashtags. NO @mentions. NO emojis except occasional contextual ones (🧵 only for actual threads ≥2 tweets).
+5. End the LAST tweet with the punchline, a question, or a teaser. No CTA URLs (this is X-native, no website link).
+6. Match this voice — short, specific, factual, slightly cheeky:
+
+Examples (one-tweet 'on this day'):
+- "On this day in 2010, Diego Forlán scored a 30-yard volley vs Germany at the World Cup. He won the Golden Ball that summer. He never scored a single Premier League goal at Manchester United.\\n\\nFootball balances itself."
+
+Examples (multi-tweet 'on this day'):
+- Tweet 1: "On this day in 2014, Diego Costa joined Chelsea for £32m.\\n\\nHe scored on his debut. He scored 20 in his first season. Won the league. Started the title race that ended with the Mourinho meltdown.\\n\\nThe best transfer of the era. 👇"
+- Tweet 2: "Three Premier League titles in his career. All three for Chelsea, all three within five years.\\n\\nRetired at 35 with a Europa League and a La Liga to his name on top.\\n\\nYou could argue no signing of the last decade returned more for less."
+
+Examples (stat-moment, 1 tweet):
+- "Real Madrid have scored from a corner in 11 of their last 12 matches.\\n\\nSecond-most prolific set-piece team in Europe behind Arsenal. Different shape — RM kick to the near post, Arsenal load the back. Both teams modeling on Brentford's '21 setup."
+
+Cite real, verifiable facts only. Use web search to confirm dates, stats, and details. If you can't verify, skip and pick a different angle.
+`;
+
+export function buildSocialPrompt(
+  slot: SocialSlot,
+  customBrief: string | undefined,
+  today: string,
+  outputPath: string,
+): string {
+  const brief = slot === "custom" ? customBrief! : SOCIAL_SLOT_BRIEFS[slot];
+  return `Today is ${today}.
+
+Slot: social · ${slot}
+
+Brief:
+${brief}
+
+Write the JSON to this file path: ${outputPath}
+
+${SOCIAL_GUIDE}`;
 }

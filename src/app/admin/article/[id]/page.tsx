@@ -5,7 +5,7 @@ import { isAuthenticated } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { DeleteButton } from "./DeleteButton";
 import { TweetButton } from "./TweetButton";
-import { ThreadPreview } from "./ThreadPreview";
+import { PromoPreview } from "./PromoPreview";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ async function saveArticle(formData: FormData) {
   const sport = String(formData.get("sport") ?? "FOOTBALL") as "FOOTBALL" | "CRICKET";
   const slug = String(formData.get("slug") ?? "").trim();
   const scheduledForRaw = String(formData.get("scheduledFor") ?? "").trim();
-  const twitterThread = String(formData.get("twitterThread") ?? "").trim() || null;
+  const promoTweet = String(formData.get("promoTweet") ?? "").trim() || null;
 
   const data: {
     title: string;
@@ -35,7 +35,7 @@ async function saveArticle(formData: FormData) {
     slug: string;
     scheduledFor?: Date | null;
     publishedAt?: Date | null;
-    twitterThread?: string | null;
+    promoTweet?: string | null;
   } = {
     title,
     dek,
@@ -43,7 +43,7 @@ async function saveArticle(formData: FormData) {
     status,
     sport,
     slug,
-    twitterThread,
+    promoTweet,
   };
 
   if (status === "SCHEDULED" && scheduledForRaw) {
@@ -79,18 +79,19 @@ async function tweetArticle(formData: FormData) {
   const id = String(formData.get("id"));
   const article = await prisma.article.findUnique({ where: { id } });
   if (!article) return;
-  const { postArticleThread } = await import("@/lib/twitter");
+  const { postArticlePromo } = await import("@/lib/twitter");
   try {
-    const tweetImages = Array.isArray(article.tweetImages)
-      ? (article.tweetImages as Array<{ slot: number; alt: string; base64: string }>)
-      : null;
-    const result = await postArticleThread({
+    const promoImage =
+      article.promoImage && typeof article.promoImage === "object"
+        ? (article.promoImage as { alt: string; base64: string })
+        : null;
+    const result = await postArticlePromo({
       sport: article.sport,
       slug: article.slug,
       title: article.title,
       dek: article.dek,
-      twitterThread: article.twitterThread,
-      tweetImages,
+      promoTweet: article.promoTweet,
+      promoImage,
     });
     await prisma.article.update({
       where: { id },
@@ -259,23 +260,23 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
           </label>
         </div>
 
-        <details>
+        <details open>
           <summary className="text-xs text-ink-dim uppercase tracking-widest cursor-pointer hover:text-ink">
-            Edit Twitter thread text (override what generation produced)
+            Promo tweet (override what generation wrote)
           </summary>
           <label className="block mt-3">
             <span className="text-[11px] uppercase tracking-widest text-ink-dim font-bold">
-              Twitter thread (one tweet per line, blank line between tweets)
+              Single tweet hook — max 250 chars (URL appended automatically)
             </span>
             <textarea
-              name="twitterThread"
-              defaultValue={article.twitterThread ?? ""}
-              rows={8}
+              name="promoTweet"
+              defaultValue={article.promoTweet ?? ""}
+              rows={4}
               className="w-full mt-1 bg-panel-2 border border-line rounded-lg px-3 py-2 font-mono text-xs outline-none focus:border-accent"
             />
             <p className="text-[11px] text-ink-dim mt-1">
-              Saving updates the preview below. Images stay attached to the same tweet
-              positions.
+              Saving updates the preview below. The promo image is taken from the article
+              body's first SVG (formation diagram or hero card).
             </p>
           </label>
         </details>
@@ -297,11 +298,11 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
       </form>
 
       <div className="mt-8">
-        <ThreadPreview
-          thread={article.twitterThread}
-          tweetImages={
-            Array.isArray(article.tweetImages)
-              ? (article.tweetImages as Array<{ slot: number; alt: string; base64: string }>)
+        <PromoPreview
+          promoTweet={article.promoTweet}
+          promoImage={
+            article.promoImage && typeof article.promoImage === "object"
+              ? (article.promoImage as { alt: string; base64: string })
               : null
           }
           fallbackTitle={article.title}
