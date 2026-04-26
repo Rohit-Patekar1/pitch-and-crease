@@ -1,15 +1,13 @@
 /**
- * Twitter / X posting client.
+ * Twitter / X thread-with-images posting client.
  *
- * Uses OAuth 1.0a (user context) which is what's needed to post tweets on
- * behalf of an account. Reads four env vars set in Railway:
- *   TWITTER_API_KEY        (a.k.a. consumer key)
- *   TWITTER_API_SECRET     (a.k.a. consumer secret)
+ * Uses OAuth 1.0a (user context). Reads four env vars set in Railway:
+ *   TWITTER_API_KEY
+ *   TWITTER_API_SECRET
  *   TWITTER_ACCESS_TOKEN
  *   TWITTER_ACCESS_SECRET
  *
- * If any are missing, calls return a clear "not configured" error so the rest
- * of the app keeps working — useful for local dev and pre-Twitter days.
+ * If any are missing, callers get a clear "not configured" error.
  */
 import { TwitterApi, type TweetV2PostTweetResult } from "twitter-api-v2";
 
@@ -34,13 +32,22 @@ export function isTwitterConfigured(): boolean {
   return getClient() !== null;
 }
 
+/** Each tweet image: which tweet slot it attaches to + the PNG bytes. */
+export interface TweetImage {
+  slot: number;
+  alt: string;
+  base64: string;
+}
+
 export interface PostThreadInput {
   sport: "FOOTBALL" | "CRICKET";
   slug: string;
   title: string;
   dek: string;
-  /** Optional: explicit thread, one tweet per line. If absent, a default 2-tweet thread is generated. */
+  /** Manual thread text — one tweet per line. Optional. */
   twitterThread?: string | null;
+  /** Pre-rendered images mapped to specific tweet slots. Optional. */
+  tweetImages?: TweetImage[] | null;
 }
 
 export interface PostThreadResult {
@@ -48,14 +55,17 @@ export interface PostThreadResult {
   firstTweetUrl: string;
 }
 
-function defaultThread(input: PostThreadInput): string[] {
+function articleUrl(input: PostThreadInput): string {
   const path = input.sport === "FOOTBALL" ? "football" : "cricket";
-  const url = `${SITE_URL}/${path}/${input.slug}`;
-  // Tweet 1: punchy headline + URL
-  const t1 = truncateForTweet(`${input.title}\n\n${url}`);
-  // Tweet 2: dek (the supporting line)
-  const t2 = truncateForTweet(input.dek);
-  return [t1, t2];
+  return `${SITE_URL}/${path}/${input.slug}`;
+}
+
+function defaultThread(input: PostThreadInput): string[] {
+  const url = articleUrl(input);
+  return [
+    truncateForTweet(`${input.title}\n\n${input.dek}\n\n🧵👇`),
+    truncateForTweet(`Read the full breakdown 👉 ${url}`),
+  ];
 }
 
 function truncateForTweet(text: string): string {
@@ -63,19 +73,49 @@ function truncateForTweet(text: string): string {
   return text.slice(0, MAX_TWEET_CHARS - 1) + "…";
 }
 
+/** Append the article URL to the LAST tweet if no URL is present anywhere in the thread. */
+function ensureUrlInThread(tweets: string[], url: string): string[] {
+  const hasUrl = tweets.some((t) => t.includes(url) || /\bhttps?:\/\//.test(t));
+  if (hasUrl) return tweets;
+  const lastIdx = tweets.length - 1;
+  const lastWithUrl = `${tweets[lastIdx]}\n\n${url}`;
+  if (lastWithUrl.length <= MAX_TWEET_CHARS) {
+    tweets[lastIdx] = lastWithUrl;
+    return tweets;
+  }
+  // Otherwise add a new short tweet
+  tweets.push(`Full breakdown 👉 ${url}`);
+  return tweets;
+}
+
 function parseThread(threadText: string, fallback: PostThreadInput): string[] {
-  // One tweet per non-empty line. Lines longer than 280 chars get truncated.
   const lines = threadText
-    .split(/\r?\n/)
+    .split(/\r?\n\r?\n|\r?\n/) // blank lines or newlines both split
     .map((l) => l.trim())
     .filter(Boolean);
   if (lines.length === 0) return defaultThread(fallback);
-  return lines.map(truncateForTweet);
+  // For analysis threads written in our editor, paragraphs separated by blank
+  // lines often represent ONE tweet. We'll be smart: if the result is too
+  // many tweets for sane volume (>10), we'll bail to default.
+  if (lines.length > 12) return defaultThread(fallback);
+  return ensureUrlInThread(lines.map(truncateForTweet), articleUrl(fallback));
+}
+
+/** Group images by slot for fast lookup. */
+function groupImagesBySlot(imgs: TweetImage[] | null | undefined): Map<number, TweetImage[]> {
+  const map = new Map<number, TweetImage[]>();
+  if (!imgs) return map;
+  for (const img of imgs) {
+    const arr = map.get(img.slot) ?? [];
+    arr.push(img);
+    map.set(img.slot, arr);
+  }
+  return map;
 }
 
 /**
- * Post an article as a Twitter thread. Each tweet replies to the previous one.
- * Returns the tweet IDs in order. The first tweet ID is the canonical "this article on Twitter" link.
+ * Post a thread with optional images attached at specific tweet slots.
+ * Returns the tweet IDs in order. The first tweet ID = canonical thread URL.
  */
 export async function postArticleThread(input: PostThreadInput): Promise<PostThreadResult> {
   const client = getClient();
@@ -84,25 +124,58 @@ export async function postArticleThread(input: PostThreadInput): Promise<PostThr
       "Twitter not configured. Set TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET in Railway env vars.",
     );
   }
-  const tweets = input.twitterThread ? parseThread(input.twitterThread, input) : defaultThread(input);
+  const tweets = input.twitterThread
+    ? parseThread(input.twitterThread, input)
+    : defaultThread(input);
+  const imagesBySlot = groupImagesBySlot(input.tweetImages);
 
   const ids: string[] = [];
   let replyTo: string | undefined;
-  for (const text of tweets) {
+
+  for (let i = 0; i < tweets.length; i++) {
+    const text = tweets[i];
+    const tweetMedia = imagesBySlot.get(i) ?? [];
+    const mediaIds: string[] = [];
+
+    // Twitter v1 media upload — required for attaching to v2 tweets
+    for (const img of tweetMedia.slice(0, 4)) {
+      // max 4 images per tweet
+      try {
+        const buf = Buffer.from(img.base64, "base64");
+        const id = await client.v1.uploadMedia(buf, { mimeType: "image/png" });
+        if (img.alt) {
+          try {
+            await client.v1.createMediaMetadata(id, { alt_text: { text: img.alt } });
+          } catch {
+            /* alt-text is best-effort */
+          }
+        }
+        mediaIds.push(id);
+      } catch (err) {
+        console.warn(`[twitter] media upload failed for slot ${i}:`, err);
+        // Fall through — we'd rather post the tweet without image than skip the tweet.
+      }
+    }
+
     const params: Parameters<typeof client.v2.tweet>[0] = { text };
     if (replyTo) {
-      // Type intentionally loose — twitter-api-v2 SDK type union is wide.
       (params as { reply?: { in_reply_to_tweet_id: string } }).reply = {
         in_reply_to_tweet_id: replyTo,
       };
     }
+    if (mediaIds.length > 0) {
+      (params as { media?: { media_ids: string[] } }).media = {
+        media_ids: mediaIds as unknown as [string, ...string[]],
+      };
+    }
+
     const res: TweetV2PostTweetResult = await client.v2.tweet(params);
     const id = res?.data?.id;
     if (!id) throw new Error("Twitter API returned no tweet id");
     ids.push(id);
     replyTo = id;
   }
-  // Twitter URL pattern: https://x.com/i/status/<id>  (works without username)
+
   const firstTweetUrl = `https://x.com/i/status/${ids[0]}`;
   return { tweetIds: ids, firstTweetUrl };
 }

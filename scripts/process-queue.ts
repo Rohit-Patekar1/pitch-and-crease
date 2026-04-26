@@ -19,6 +19,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PrismaClient, type Sport } from "@prisma/client";
 import { buildPrompt, type Slot } from "../src/lib/generate-prompt";
+import { renderSvgsFromHtml } from "../src/lib/render-svg";
 
 const prisma = new PrismaClient();
 
@@ -51,14 +52,17 @@ function runClaude(prompt: string, articlePath: string): Promise<void> {
   });
 }
 
-function extractArticleJson(raw: string): {
+interface ParsedArticle {
   sport: Sport;
   title: string;
   slug: string;
   dek: string;
   body: string;
   twitterThread?: string;
-} {
+  twitterImageMap?: Array<{ tweetIndex: number; svgIndex: number; alt?: string }>;
+}
+
+function extractArticleJson(raw: string): ParsedArticle {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
   const obj = JSON.parse(cleaned);
   for (const k of ["title", "slug", "dek", "body"]) {
@@ -73,7 +77,22 @@ function extractArticleJson(raw: string): {
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 100);
-  return obj;
+  return obj as ParsedArticle;
+}
+
+function buildTweetImages(
+  body: string,
+  imageMap: ParsedArticle["twitterImageMap"],
+): Array<{ slot: number; alt: string; base64: string }> {
+  if (!imageMap || imageMap.length === 0) return [];
+  const rendered = renderSvgsFromHtml(body);
+  const out: Array<{ slot: number; alt: string; base64: string }> = [];
+  for (const m of imageMap) {
+    const png = rendered.find((r) => r.index === m.svgIndex);
+    if (!png) continue;
+    out.push({ slot: m.tweetIndex, alt: m.alt ?? png.alt, base64: png.base64 });
+  }
+  return out;
 }
 
 async function processOne(req: {
@@ -107,6 +126,9 @@ async function processOne(req: {
     const existing = await prisma.article.findUnique({ where: { slug } });
     if (existing) slug = `${slug}-${today}`;
 
+    const tweetImages = buildTweetImages(article.body, article.twitterImageMap);
+    console.log(`[queue] rendered ${tweetImages.length} thread images`);
+
     const created = await prisma.article.create({
       data: {
         slug,
@@ -115,6 +137,7 @@ async function processOne(req: {
         dek: article.dek,
         body: article.body,
         twitterThread: article.twitterThread ?? null,
+        tweetImages: tweetImages.length > 0 ? (tweetImages as object) : undefined,
         status: "DRAFT",
         source: req.slot,
         promptSeed: req.prompt.slice(0, 500),

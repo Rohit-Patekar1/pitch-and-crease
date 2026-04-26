@@ -26,6 +26,9 @@ model Article {
   // Posted-to-social tracking
   tweetIds      String?   @db.Text       // comma-separated tweet IDs after posting
   tweetedAt     DateTime?
+  // Pre-rendered images for thread (base64 PNG strings)
+  // shape: [{ slot: number, alt: string, base64: string }]
+  tweetImages   Json?
   // Generation metadata
   promptSeed    String?   @db.Text       // the prompt that produced it (for re-runs / audit)
   source        String?                  // "auto-daily" | "manual" | "on-this-day" | etc.

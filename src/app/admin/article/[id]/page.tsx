@@ -5,6 +5,7 @@ import { isAuthenticated } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { DeleteButton } from "./DeleteButton";
 import { TweetButton } from "./TweetButton";
+import { ThreadPreview } from "./ThreadPreview";
 
 export const dynamic = "force-dynamic";
 
@@ -80,12 +81,16 @@ async function tweetArticle(formData: FormData) {
   if (!article) return;
   const { postArticleThread } = await import("@/lib/twitter");
   try {
+    const tweetImages = Array.isArray(article.tweetImages)
+      ? (article.tweetImages as Array<{ slot: number; alt: string; base64: string }>)
+      : null;
     const result = await postArticleThread({
       sport: article.sport,
       slug: article.slug,
       title: article.title,
       dek: article.dek,
       twitterThread: article.twitterThread,
+      tweetImages,
     });
     await prisma.article.update({
       where: { id },
@@ -256,18 +261,22 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
 
         <details>
           <summary className="text-xs text-ink-dim uppercase tracking-widest cursor-pointer hover:text-ink">
-            Social copy (optional, used by tomorrow's Twitter integration)
+            Edit Twitter thread text (override what generation produced)
           </summary>
           <label className="block mt-3">
             <span className="text-[11px] uppercase tracking-widest text-ink-dim font-bold">
-              Twitter thread (one tweet per line, blank line = paragraph break)
+              Twitter thread (one tweet per line, blank line between tweets)
             </span>
             <textarea
               name="twitterThread"
               defaultValue={article.twitterThread ?? ""}
-              rows={6}
+              rows={8}
               className="w-full mt-1 bg-panel-2 border border-line rounded-lg px-3 py-2 font-mono text-xs outline-none focus:border-accent"
             />
+            <p className="text-[11px] text-ink-dim mt-1">
+              Saving updates the preview below. Images stay attached to the same tweet
+              positions.
+            </p>
           </label>
         </details>
 
@@ -286,6 +295,20 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
           </Link>
         </div>
       </form>
+
+      <div className="mt-8">
+        <ThreadPreview
+          thread={article.twitterThread}
+          tweetImages={
+            Array.isArray(article.tweetImages)
+              ? (article.tweetImages as Array<{ slot: number; alt: string; base64: string }>)
+              : null
+          }
+          fallbackTitle={article.title}
+          fallbackDek={article.dek}
+          articleUrl={`${process.env.SITE_URL || "https://pitch-and-crease-production.up.railway.app"}${previewPath}`}
+        />
+      </div>
     </div>
   );
 }

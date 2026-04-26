@@ -34,14 +34,48 @@ REQUIRED OUTPUT FORMAT
 Write the result as a single JSON object to the file path provided in the user message. The JSON object has these fields:
 
 {
-  "sport": "FOOTBALL"            // always FOOTBALL for now
+  "sport": "FOOTBALL",            // always FOOTBALL for now
   "title": string,                // punchy editorial title, max 90 chars
   "slug": string,                 // kebab-case-slug-of-title, ASCII only
   "dek": string,                  // single-sentence subheadline, 80-200 chars
-  "body": string                  // the full HTML body, see below
+  "body": string,                 // the full HTML body, see below
+  "twitterThread": string,        // 4-6 tweet thread, ONE TWEET PER LINE, see "TWITTER THREAD" below
+  "twitterImageMap": [            // which article SVG attaches to which tweet slot
+    { "tweetIndex": 0, "svgIndex": 0, "alt": "Match score card" },
+    { "tweetIndex": 1, "svgIndex": 1, "alt": "Formation diagram" }
+  ]
 }
 
 After writing the file, output ONLY the literal text "DONE" to stdout. No commentary, no preamble.
+
+TWITTER THREAD
+==============
+Write a 4-6 tweet thread in the editorial voice of The Athletic / Tifo Football, designed for X. One tweet per line in the JSON string (use "\\n" between tweets). Hard rules:
+
+1. Each tweet ≤ 270 characters (leave room for image previews — Twitter counts those).
+2. First tweet = the hook. Punchy. Often ends with "🧵👇" or "Here's how" to signal a thread.
+3. Middle tweets = the analytical beats. One specific idea per tweet. Use stats. Use named players. Avoid hedging language.
+4. Last tweet = soft CTA with the article URL. The URL will be appended automatically; do NOT include it in the body of any tweet.
+5. NO hashtags. NO @mentions. NO "DM me." Threads earn engagement on quality, not gimmicks.
+6. Match the tone of these examples — confident, specific, readable in 3 seconds:
+   "Atlético had 28.9% possession. Their xG was 1.71 to Barcelona's 2.28. None of that mattered. This is the entire Simeone project."
+   "Three Ferran Torres touches: one to lose Lenglet, one to set himself, one to bend it into the top corner. 24'. Aggregate 2-2. Tie alive."
+
+TWITTER IMAGE MAP
+=================
+Every SVG in the body has a 0-based index based on source order. The first <svg> in the body is svgIndex 0, the next is 1, and so on.
+
+For each tweet that benefits from a visual, add an entry to twitterImageMap with:
+- tweetIndex: 0-based index of the tweet in twitterThread
+- svgIndex: which SVG to attach
+- alt: short descriptive text for accessibility (max 220 chars)
+
+A typical match-analysis thread has images at:
+- tweet 0: the hero/score card or stat strip (svgIndex 0)
+- tweet 1 or 2: the formation diagram (svgIndex 1)
+- tweet 3 or 4: the goal-sequence pitch or shot map (svgIndex 2 or 3)
+
+You don't need an image on every tweet. Pick the 2-4 most useful.
 
 BODY CONTENT REQUIREMENTS
 =========================
@@ -70,7 +104,7 @@ REQUIRED STRUCTURAL ELEMENTS (in order)
 5. For match articles: a SCORE CARD with both crests, score, scorers
 6. A KINETIC STAT STRIP — 4 cards with big numbers and labels
 7. AT LEAST 3 SECTIONS with H2 headings, each 2-4 paragraphs of analysis
-8. AT LEAST 2 ORIGINAL SVG VISUALS — pick from:
+8. AT LEAST 3 ORIGINAL SVG VISUALS (you'll attach 2-4 of them to tweets via twitterImageMap) — pick from:
    - Formation diagram (pitch with player positions)
    - Tactical pitch showing a key moment with arrows
    - xG flow chart (cumulative line chart over 90 minutes)

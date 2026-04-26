@@ -22,6 +22,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PrismaClient, Sport, Status } from "@prisma/client";
 import { buildPrompt, type Slot } from "../src/lib/generate-prompt";
+import { renderSvgsFromHtml } from "../src/lib/render-svg";
 
 const prisma = new PrismaClient();
 
@@ -81,13 +82,17 @@ function runClaude(prompt: string, articlePath: string): Promise<void> {
   });
 }
 
-function extractArticleJson(raw: string): {
+interface ParsedArticle {
   sport: Sport;
   title: string;
   slug: string;
   dek: string;
   body: string;
-} {
+  twitterThread?: string;
+  twitterImageMap?: Array<{ tweetIndex: number; svgIndex: number; alt?: string }>;
+}
+
+function extractArticleJson(raw: string): ParsedArticle {
   // Strip code fences if Claude added them
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
   const obj = JSON.parse(cleaned);
@@ -108,7 +113,30 @@ function extractArticleJson(raw: string): {
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 100);
-  return obj;
+  return obj as ParsedArticle;
+}
+
+/** Build the tweetImages array from rendered SVGs + Claude's twitterImageMap. */
+function buildTweetImages(
+  body: string,
+  imageMap: ParsedArticle["twitterImageMap"],
+): Array<{ slot: number; alt: string; base64: string }> {
+  if (!imageMap || imageMap.length === 0) return [];
+  const rendered = renderSvgsFromHtml(body);
+  const out: Array<{ slot: number; alt: string; base64: string }> = [];
+  for (const m of imageMap) {
+    const png = rendered.find((r) => r.index === m.svgIndex);
+    if (!png) {
+      console.warn(`[generate] no rendered svg at index ${m.svgIndex} for tweet ${m.tweetIndex}`);
+      continue;
+    }
+    out.push({
+      slot: m.tweetIndex,
+      alt: m.alt ?? png.alt,
+      base64: png.base64,
+    });
+  }
+  return out;
 }
 
 async function generate(slot: Slot, custom?: string): Promise<void> {
@@ -135,6 +163,9 @@ async function generate(slot: Slot, custom?: string): Promise<void> {
     console.log(`[generate] slug collision, using: ${slug}`);
   }
 
+  const tweetImages = buildTweetImages(article.body, article.twitterImageMap);
+  console.log(`[generate] rendered ${tweetImages.length} thread images`);
+
   const created = await prisma.article.create({
     data: {
       slug,
@@ -142,6 +173,8 @@ async function generate(slot: Slot, custom?: string): Promise<void> {
       title: article.title,
       dek: article.dek,
       body: article.body,
+      twitterThread: article.twitterThread ?? null,
+      tweetImages: tweetImages.length > 0 ? (tweetImages as object) : undefined,
       status: "DRAFT",
       source: slot,
       promptSeed: (custom ?? slot).slice(0, 500),
