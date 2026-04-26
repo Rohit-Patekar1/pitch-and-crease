@@ -3,6 +3,7 @@ import Link from "next/link";
 import { isAuthenticated, clearSessionCookie } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { SuggestionForm } from "./SuggestionForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin" };
@@ -90,39 +91,38 @@ export default async function AdminDashboard() {
       <div className="grid lg:grid-cols-3 gap-3 mb-6">
         <div className="card p-5 lg:col-span-2">
           <h2 className="text-sm font-bold uppercase tracking-widest text-accent mb-2">
-            Generate a story
+            Suggest a story
           </h2>
           <p className="text-xs text-ink-dim mb-3 leading-relaxed">
-            Generation runs locally on your laptop using your Claude Max subscription. From your
-            terminal, in this project folder, run any of:
+            Pick a slot, optionally refine with a prompt, click queue. Your laptop's Claude Code
+            poller picks it up next time you run{" "}
+            <code className="text-accent">npm run process:queue</code> (or while{" "}
+            <code className="text-accent">--watch</code> mode is running).
           </p>
-          <pre className="bg-panel-2 border border-line rounded-lg p-3 text-xs font-mono overflow-x-auto leading-relaxed">
-{`npm run generate -- --slot=on-this-day
-npm run generate -- --slot=recent-match
-npm run generate -- --slot=transfer
-npm run generate -- --slot=tactics
-npm run generate -- --slot=player
-npm run generate -- --slot=custom --custom="Your prompt here"
-npm run generate -- --daily              # all 5 in sequence`}
-          </pre>
-          <p className="text-xs text-ink-dim mt-3">
-            Drafts appear here within a few minutes. Click any draft to review and edit before
-            approving.
-          </p>
+          <SuggestionForm />
         </div>
 
         <div className="card p-5">
           <h2 className="text-sm font-bold uppercase tracking-widest text-accent mb-2">
-            Schedule worker
+            Local commands
           </h2>
-          <p className="text-xs text-ink-dim mb-3 leading-relaxed">
-            To auto-publish SCHEDULED articles when their time comes, run on a cron:
-          </p>
-          <pre className="bg-panel-2 border border-line rounded-lg p-3 text-xs font-mono">
-{`npm run publish:scheduled`}
+          <pre className="bg-panel-2 border border-line rounded-lg p-3 text-[11px] font-mono leading-relaxed overflow-x-auto">
+{`# pick up queued requests
+npm run process:queue
+npm run process:queue -- --watch
+
+# direct one-off (no queue)
+npm run generate -- --slot=on-this-day
+
+# auto-publish SCHEDULED
+npm run publish:scheduled`}
           </pre>
         </div>
       </div>
+
+      {/* Recent generation requests */}
+      {await renderRequestsTable()}
+
 
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
@@ -199,6 +199,73 @@ npm run generate -- --daily              # all 5 in sequence`}
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+const REQ_STATUS_COLORS: Record<string, string> = {
+  PENDING: "bg-line text-ink-dim",
+  PROCESSING: "bg-accent/20 text-accent",
+  DONE: "bg-cricket/30 text-cricket",
+  FAILED: "bg-football/30 text-football",
+};
+
+async function renderRequestsTable() {
+  const reqs = await prisma.generationRequest.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+  if (reqs.length === 0) return null;
+  return (
+    <div className="card overflow-hidden mb-6">
+      <div className="bg-panel-2 px-4 py-3">
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-accent">
+          Recent generation requests
+        </h2>
+      </div>
+      <table className="w-full text-sm">
+        <thead className="bg-panel-2 text-ink-dim text-[11px] uppercase tracking-widest">
+          <tr>
+            <th className="text-left px-4 py-2 hidden sm:table-cell">When</th>
+            <th className="text-left px-4 py-2">Slot</th>
+            <th className="text-left px-4 py-2">Prompt</th>
+            <th className="text-left px-4 py-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reqs.map((r) => (
+            <tr key={r.id} className="border-t border-line">
+              <td className="px-4 py-2 text-xs text-ink-dim font-mono hidden sm:table-cell">
+                {r.createdAt.toISOString().slice(5, 16).replace("T", " ")}
+              </td>
+              <td className="px-4 py-2 text-xs">{r.slot}</td>
+              <td className="px-4 py-2 text-xs text-ink-dim max-w-md truncate">
+                {r.prompt.length > 90 ? r.prompt.slice(0, 90) + "…" : r.prompt}
+                {r.errorMessage && (
+                  <span className="block text-football text-[10px] mt-0.5">
+                    {r.errorMessage.slice(0, 140)}
+                  </span>
+                )}
+              </td>
+              <td className="px-4 py-2">
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${REQ_STATUS_COLORS[r.status]}`}
+                >
+                  {r.status}
+                </span>
+                {r.articleId && r.status === "DONE" && (
+                  <Link
+                    href={`/admin/article/${r.articleId}`}
+                    className="ml-2 text-xs underline text-accent"
+                  >
+                    open
+                  </Link>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

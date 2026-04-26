@@ -12,14 +12,16 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "generate": "tsx scripts/generate.ts",
-    "publish:scheduled": "tsx scripts/publish-scheduled.ts"
+    "publish:scheduled": "tsx scripts/publish-scheduled.ts",
+    "process:queue": "tsx scripts/process-queue.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "next": "^16.2.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "twitter-api-v2": "^1.18.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

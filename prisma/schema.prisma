@@ -23,6 +23,9 @@ model Article {
   // Social copies — generation script fills these
   twitterThread String?   @db.Text       // newline-separated tweets
   facebookCopy  String?   @db.Text
+  // Posted-to-social tracking
+  tweetIds      String?   @db.Text       // comma-separated tweet IDs after posting
+  tweetedAt     DateTime?
   // Generation metadata
   promptSeed    String?   @db.Text       // the prompt that produced it (for re-runs / audit)
   source        String?                  // "auto-daily" | "manual" | "on-this-day" | etc.
@@ -33,6 +36,29 @@ model Article {
 
   @@index([sport, status])
   @@index([publishedAt])
+}
+
+/// A user-submitted prompt waiting for the local Claude Code poller to pick it up.
+/// Created by POST /api/generate-request from the admin dashboard.
+/// Processed by `npm run process:queue` running on the user's laptop.
+model GenerationRequest {
+  id            String    @id @default(cuid())
+  prompt        String    @db.Text
+  slot          String    @default("custom")  // "custom" | "on-this-day" | "recent-match" | etc.
+  status        ReqStatus @default(PENDING)
+  articleId     String?                       // set when generation succeeds
+  errorMessage  String?   @db.Text            // set when generation fails
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, createdAt])
+}
+
+enum ReqStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
 }
 
 enum Sport {

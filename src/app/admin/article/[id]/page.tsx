@@ -3,6 +3,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { isAuthenticated } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { DeleteButton } from "./DeleteButton";
+import { TweetButton } from "./TweetButton";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +73,35 @@ async function deleteArticle(formData: FormData) {
   redirect("/admin");
 }
 
+async function tweetArticle(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id"));
+  const article = await prisma.article.findUnique({ where: { id } });
+  if (!article) return;
+  const { postArticleThread } = await import("@/lib/twitter");
+  try {
+    const result = await postArticleThread({
+      sport: article.sport,
+      slug: article.slug,
+      title: article.title,
+      dek: article.dek,
+      twitterThread: article.twitterThread,
+    });
+    await prisma.article.update({
+      where: { id },
+      data: {
+        tweetIds: result.tweetIds.join(","),
+        tweetedAt: new Date(),
+      },
+    });
+  } catch (e) {
+    // Re-throw so the user sees the error in the Next dev overlay / Railway logs
+    throw e;
+  }
+  revalidatePath(`/admin/article/${id}`);
+  revalidatePath("/admin");
+}
+
 const STATUSES = ["DRAFT", "APPROVED", "SCHEDULED", "PUBLISHED", "ARCHIVED"] as const;
 
 export default async function ArticleEditor({ params }: { params: Promise<{ id: string }> }) {
@@ -97,6 +128,19 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
           </Link>
           <h1 className="text-2xl font-bold mt-2">Edit article</h1>
           <p className="text-xs text-ink-dim font-mono mt-1">id: {article.id}</p>
+          {article.tweetIds && article.tweetedAt && (
+            <p className="text-xs text-[#1d9bf0] mt-1">
+              Posted to X{" "}
+              <a
+                href={`https://x.com/i/status/${article.tweetIds.split(",")[0]}`}
+                target="_blank"
+                rel="noopener"
+                className="underline"
+              >
+                {article.tweetedAt.toISOString().slice(0, 16).replace("T", " ")}
+              </a>
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <Link
@@ -106,17 +150,13 @@ export default async function ArticleEditor({ params }: { params: Promise<{ id: 
           >
             Preview ↗
           </Link>
+          <form action={tweetArticle}>
+            <input type="hidden" name="id" value={article.id} />
+            <TweetButton alreadyTweeted={!!article.tweetIds} />
+          </form>
           <form action={deleteArticle}>
             <input type="hidden" name="id" value={article.id} />
-            <button
-              type="submit"
-              className="text-xs bg-football text-white px-3 py-2 rounded-lg font-bold"
-              onClick={(e) => {
-                if (!confirm("Delete this article? This cannot be undone.")) e.preventDefault();
-              }}
-            >
-              Delete
-            </button>
+            <DeleteButton />
           </form>
         </div>
       </header>
