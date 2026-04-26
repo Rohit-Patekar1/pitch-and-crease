@@ -88,10 +88,17 @@ export async function postArticlePromo(input: {
   const url = `${SITE_URL}/${path}/${input.slug}`;
   const hook = (input.promoTweet ?? `${input.title}\n\n${input.dek}`).trim();
 
-  // Append URL on new line unless already present
-  const text = hook.includes(url) || /\bhttps?:\/\//.test(hook)
-    ? truncate(hook)
-    : truncate(`${hook}\n\n${url}`);
+  // Build the tweet body. Twitter counts URLs as 23 chars regardless of length,
+  // so the cap on the hook portion is 280 − 2 (newlines) − 23 (URL) = 255.
+  // We never truncate the URL itself — that produces a broken link.
+  let text: string;
+  if (hook.includes(url) || /\bhttps?:\/\//.test(hook)) {
+    text = truncate(hook);
+  } else {
+    const HOOK_MAX = 252; // 255 minus 3-char safety margin
+    const safeHook = hook.length > HOOK_MAX ? hook.slice(0, HOOK_MAX - 1) + "…" : hook;
+    text = `${safeHook}\n\n${url}`;
+  }
 
   const params: Parameters<typeof client.v2.tweet>[0] = { text };
   if (input.promoImage) {
